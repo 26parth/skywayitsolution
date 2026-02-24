@@ -1,0 +1,14 @@
+{
+  "name": "skywayitsolution",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "backend": "npm run dev --prefix backend",
+    "frontend": "npm run dev --prefix frontend",
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\""
+  },
+  "devDependencies": {
+    "baseline-browser-mapping": "^2.9.18",
+    "concurrently": "^9.2.1"
+  }
+}

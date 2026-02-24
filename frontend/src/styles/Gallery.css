@@ -1,0 +1,25 @@
+/* Custom Swiper Styles for 3D Cube Effect */
+
+.mySwiper-cube-3d {
+    /* क्यूब इफ़ेक्ट के कंटेनर को केंद्र में रखें */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* 3D क्यूब की छाया को नीले रंग की थीम दें */
+.mySwiper-cube-3d .swiper-slide-shadow-left {
+    background-image: linear-gradient(to left, rgba(14, 165, 233, 0.5), rgba(0, 0, 0, 0)) !important;
+}
+
+.mySwiper-cube-3d .swiper-slide-shadow-right {
+    background-image: linear-gradient(to right, rgba(14, 165, 233, 0.5), rgba(0, 0, 0, 0)) !important;
+}
+
+/* Pagination dots (Theme color) */
+.mySwiper-cube-3d .swiper-pagination-bullet {
+    background: rgba(255, 255, 255, 0.4) !important;
+}
+
+.mySwiper-cube-3d .swiper-pagination-bullet-active {
+    background: #0ea5e9 !important;
+}

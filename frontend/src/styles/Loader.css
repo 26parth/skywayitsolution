@@ -1,0 +1,57 @@
+/* frontend/src/styles/Loader.css */
+
+.loader-wrap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  min-height: 100dvh;    /* mobile-safe fullscreen */
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  background: #050D1C;
+  --foreground-col: #fff;
+  --background-col: #050D1C;  
+
+  z-index: 9999;
+  pointer-events: none;   /* prevents layout issues */
+}
+
+/* SVG only for loader */
+.loader-svg {
+  width: 300px;
+  margin: 0;
+}
+
+#outline {
+  fill: none;
+  stroke: var(--foreground-col);
+  stroke-width: 0.1px;
+}
+
+#load {
+  fill: var(--foreground-col);
+  animation: loading 6s linear infinite;
+}
+
+#mask {
+  fill: var(--background-col);
+}
+
+@keyframes loading {
+  from {
+    y: 11.5px;
+  }
+  to {
+    y: -6px;
+  }
+}
+
+.loaderText {
+  color: var(--foreground-col);
+  font-size: 2.2rem;
+  font-weight: bold;
+  margin-top: 15px;
+}

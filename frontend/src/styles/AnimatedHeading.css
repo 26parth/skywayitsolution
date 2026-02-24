@@ -1,0 +1,63 @@
+body {
+  background: var(--background-col);
+  --foreground-col: #fff;
+  --background-col: #000;
+}
+
+body.invert {
+  --foreground-col: #000;
+  --background-col: #fff;
+}
+
+.heading-wrap {
+  position: relative;
+  width: 100%;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+button {
+  position: absolute;
+  top: -40px;
+  right: 20px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+}
+
+svg {
+  width: 300px;
+  margin: auto;
+  display: block;
+}
+
+#outline {
+  fill: none;
+  stroke: var(--foreground-col);
+  stroke-width: 0.1px;
+}
+
+#load {
+  fill: var(--foreground-col);
+  animation: loading 6s linear infinite;
+}
+
+#mask {
+  fill: var(--background-col);
+}
+
+@keyframes loading {
+  from {
+    y: 11.5px;
+  }
+  to {
+    y: -6px;
+  }
+}
+
+.headingText {
+  color: var(--foreground-col);
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-top: 15px;
+}
