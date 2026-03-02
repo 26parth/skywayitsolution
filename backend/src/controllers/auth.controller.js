@@ -8,7 +8,7 @@ import {
 
 /** Helper to set refresh cookie for users */
 const setUserRefreshCookie = (res, token) => {
-  const cookieName = process.env.REFRESH_TOKEN_COOKIE_NAME || "jid";
+  const cookieName = process.env.USER_REFRESH_COOKIE || "user_jid";
   const secure = process.env.COOKIE_SECURE === "true";
   const sameSite = process.env.COOKIE_SAMESITE || "None";
   const domain = process.env.COOKIE_DOMAIN || undefined;
@@ -75,6 +75,11 @@ export const loginUser = async (req, res, next) => {
     if (!email || !password) return res.status(400).json({ message: "Email and password required" });
 
     const user = await User.findOne({ email });
+
+    if (!user || user.role !== "student") {
+      return res.status(401).json({ message: "Invalid student credentials" });
+    }
+
     if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
     const ok = await user.comparePassword(password);
@@ -104,7 +109,7 @@ export const loginUser = async (req, res, next) => {
 /** Refresh user access token */
 export const refreshUserToken = async (req, res, next) => {
   try {
-    const cookieName = process.env.REFRESH_TOKEN_COOKIE_NAME || "jid";
+    const cookieName = process.env.USER_REFRESH_COOKIE || "user_jid";
     const token = req.cookies?.[cookieName];
     if (!token) return res.status(401).json({ message: "No refresh token" });
 
@@ -116,6 +121,10 @@ export const refreshUserToken = async (req, res, next) => {
     }
 
     const user = await User.findById(payload.id);
+
+    if (!user || user.role !== "student") {
+      return res.status(401).json({ message: "Unauthorized user" });
+    }
     if (!user) return res.status(401).json({ message: "User not found" });
 
     const accessToken = createUserAccessToken(user);
@@ -139,7 +148,7 @@ export const refreshUserToken = async (req, res, next) => {
 /** Logout user (clear cookie) */
 export const logoutUser = async (req, res, next) => {
   try {
-    const cookieName = process.env.REFRESH_TOKEN_COOKIE_NAME || "jid";
+    const cookieName = process.env.USER_REFRESH_COOKIE || "user_jid";
     res.clearCookie(cookieName, { path: "/" });
     return res.json({ success: true, message: "Logged out" });
   } catch (err) {

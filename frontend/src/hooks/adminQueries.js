@@ -27,7 +27,7 @@ export const useAdminLogin = () => {
 
   return useMutation({
     mutationFn: async (formData) => {
-     const res = await axiosAdmin.post("/admin/login", formData);
+     const res = await axiosAdmin.post("/login", formData);
       return res.data;
     },
     onSuccess: (data) => {

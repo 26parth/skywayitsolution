@@ -12,7 +12,7 @@ const router = express.Router();
 router.post("/", createFeedback);
 
 // ADMIN
-router.get("/admin", verifyAdminAccess, getAllFeedbacks);
-router.delete("/admin/:id", verifyAdminAccess, deleteFeedback);
+router.get("/", verifyAdminAccess, getAllFeedbacks);
+router.delete("/:id", verifyAdminAccess, deleteFeedback);
 
 export default router;

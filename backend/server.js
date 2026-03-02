@@ -64,9 +64,14 @@ app.use("/api/admission", admissionRoutes); // for user-side form
 app.use("/api/admin/admission", admissionRoutes); // for admin-side form
 app.use("/api/admin/certificate", certificateRoutes);
 
-// Routes
+
+// PUBLIC
 app.use("/api/enquiry", enquiryRoutes);
 app.use("/api/feedback", feedbackRoutes);
+
+// admin
+app.use("/api/admin/enquiry", enquiryRoutes);
+app.use("/api/admin/feedback", feedbackRoutes);
 
 
 // ----------------------

@@ -12,7 +12,7 @@ const router = express.Router();
 router.post("/", createEnquiry);
 
 // ADMIN
-router.get("/admin", verifyAdminAccess, getAllEnquiries);
-router.delete("/admin/:id", verifyAdminAccess, deleteEnquiry);
+router.get("/", verifyAdminAccess, getAllEnquiries);
+router.delete("/:id", verifyAdminAccess, deleteEnquiry);
 
 export default router;

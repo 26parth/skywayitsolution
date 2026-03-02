@@ -11,7 +11,7 @@ import bcrypt from "bcryptjs";
  * Helper: Set refresh token cookie
  */
 const setRefreshCookie = (res, token) => {
-  const cookieName = process.env.REFRESH_TOKEN_COOKIE_NAME || "jid";
+  const cookieName = process.env.ADMIN_REFRESH_COOKIE || "admin_jid";
   const secure = process.env.COOKIE_SECURE === "true";
   const sameSite = process.env.COOKIE_SAMESITE || "none";
   const domain = process.env.COOKIE_DOMAIN || undefined;
@@ -117,7 +117,7 @@ export const loginAdmin = async (req, res, next) => {
  */
 export const refreshAdminToken = async (req, res, next) => {
   try {
-    const cookieName = process.env.REFRESH_TOKEN_COOKIE_NAME || "jid";
+    const cookieName = process.env.ADMIN_REFRESH_COOKIE || "admin_jid";
     const token = req.cookies?.[cookieName];
 
     if (!token)
@@ -131,6 +131,12 @@ export const refreshAdminToken = async (req, res, next) => {
     }
 
     const admin = await User.findById(payload.id);
+
+    // 🔥 INDUSTRY LEVEL ROLE CHECK
+    if (!admin || admin.role !== "admin") {
+      return res.status(401).json({ message: "Unauthorized admin" });
+    }
+
     if (!admin)
       return res.status(401).json({ message: "Admin not found" });
 
@@ -159,7 +165,7 @@ export const refreshAdminToken = async (req, res, next) => {
  */
 export const logoutAdmin = async (req, res, next) => {
   try {
-    const cookieName = process.env.REFRESH_TOKEN_COOKIE_NAME || "jid";
+    const cookieName = process.env.ADMIN_REFRESH_COOKIE || "admin_jid";
 
     res.clearCookie(cookieName, { path: "/" });
 

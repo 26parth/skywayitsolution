@@ -11,6 +11,8 @@ export default function useAdminPersist() {
   const dispatch = useDispatch();
 
   useEffect(() => {
+    if (!window.location.pathname.startsWith("/admin")) return;
+
     const restoreAdmin = async () => {
       dispatch(setAdminLoading(true));
 

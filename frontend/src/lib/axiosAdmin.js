@@ -8,10 +8,9 @@ import {
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const axiosAdmin = axios.create({
-  baseURL: API,
+  baseURL: `${API}/admin`,
   withCredentials: true,
 });
-
 axiosAdmin.interceptors.request.use((config) => {
   const state = store.getState();
   const token = state.adminAuth?.accessToken;
@@ -28,7 +27,7 @@ axiosAdmin.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (originalRequest?.url?.includes("/admin/refresh-token")) {
+  if (originalRequest?.url?.includes("/refresh-token")) {
       store.dispatch(logoutAdmin());
       return Promise.reject(error);
     }
@@ -37,7 +36,7 @@ axiosAdmin.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const r = await axiosAdmin.post("/admin/refresh-token");
+       const r = await axiosAdmin.post("/refresh-token");
 
         store.dispatch(
           setAdminLoginData({

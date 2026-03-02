@@ -25,8 +25,9 @@ router.get("/me", verifyAdminAccess, (req, res) => {
 // Logout
 router.post("/logout", logoutAdmin);
 
+router.get("/users", verifyAdminAccess, getAllStudents);
+router.put("/update-user/:id", verifyAdminAccess, adminUpdateUser);
+router.delete("/delete-user/:id", verifyAdminAccess, adminDeleteUser);
 
-router.get("/users", getAllStudents);
-router.put("/update-user/:id", adminUpdateUser);
-router.delete("/delete-user/:id", adminDeleteUser);
+
 export default router;

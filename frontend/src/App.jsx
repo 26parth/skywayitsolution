@@ -27,7 +27,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AddCourse from './pages/admin/AddCourse';
 import useAdminPersist from "./hooks/useAdminPersist";
-import useAuthPersist from "./hooks/useAuthPersist";
+// import useAuthPersist from "./hooks/useAuthPersist";
 import AdmissionForm from './pages/AdmissionForm';
 import ShowAdmission from './pages/admin/ShowAdmission';
 import ShowUser from './pages/admin/ShowUser';
@@ -38,7 +38,7 @@ import AdminLayout from './components/admin/AdminLayout';
 const App = () => {
 
   useAdminPersist(); // 🔥 VERY IMPORTANT 
-  useAuthPersist();   // 🔥 USER SESSION RESTORE
+  // useAuthPersist();   // 🔥 USER SESSION RESTORE
   // Modal को नियंत्रित करने के लिए State
   const [isModalOpen, setIsModalOpen] = useState(false);
 

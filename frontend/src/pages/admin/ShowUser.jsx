@@ -7,13 +7,13 @@ const ShowUser = () => {
   const [editUser, setEditUser] = useState(null);
 
   const fetchUsers = async () => {
-    try {
-      const res = await axiosAdmin.get("/users");
-      setUsers(res.data || []);
-    } catch (error) {
-      toast.error("Users load nahi ho paye");
-    }
-  };
+  try {
+    const res = await axiosAdmin.get("/users");
+    setUsers(res.data || []);
+  } catch (error) {
+    toast.error("Users load nahi ho paye");
+  }
+};
 
   const deleteUser = async (id) => {
     if (!confirm("Kya aap sach me is user ko delete karna chahte hain?")) return;

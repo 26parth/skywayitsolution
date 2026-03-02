@@ -6,7 +6,7 @@ export const useAdminEnquiries = () =>
   useQuery({
     queryKey: ["admin-enquiries"],
     queryFn: async () => {
-      const res = await axiosAdmin.get("/enquiry/admin"); // ✅ FIX
+      const res = await axiosAdmin.get("/enquiry");
       return res.data.enquiries;
     },
   });
@@ -14,7 +14,7 @@ export const useAdminEnquiries = () =>
 export const useDeleteEnquiry = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id) => axiosAdmin.delete(`/enquiry/admin/${id}`), // ✅ FIX
+    mutationFn: (id) => axiosAdmin.delete(`/enquiry/${id}`),
     onSuccess: () => qc.invalidateQueries(["admin-enquiries"]),
   });
 };
@@ -24,7 +24,7 @@ export const useAdminFeedbacks = () =>
   useQuery({
     queryKey: ["admin-feedbacks"],
     queryFn: async () => {
-      const res = await axiosAdmin.get("/feedback/admin"); // ✅ FIX
+      const res = await axiosAdmin.get("/feedback");
       return res.data.feedbacks;
     },
   });
@@ -32,7 +32,7 @@ export const useAdminFeedbacks = () =>
 export const useDeleteFeedback = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id) => axiosAdmin.delete(`/feedback/admin/${id}`), // ✅ FIX
+    mutationFn: (id) => axiosAdmin.delete(`/feedback/${id}`),
     onSuccess: () => qc.invalidateQueries(["admin-feedbacks"]),
   });
 };
