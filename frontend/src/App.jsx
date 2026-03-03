@@ -34,6 +34,7 @@ import ShowUser from './pages/admin/ShowUser';
 import Enquiries from "./pages/admin/Enquiries";
 import Feedbacks from "./pages/admin/Feedbacks";
 import AdminLayout from './components/admin/AdminLayout';
+import Manageadmin from './pages/admin/Manageadmin';
 
 const App = () => {
 
@@ -126,6 +127,7 @@ const App = () => {
         <Route path="/admin/users" element={<ShowUser />} />
         <Route path="/admin/enquiries" element={<Enquiries />} />
         <Route path="/admin/feedbacks" element={<Feedbacks />} />
+        <Route path="/admin/manage-admin" element={<Manageadmin/>} />
     </Route>
 
         {/* 404 Page */}

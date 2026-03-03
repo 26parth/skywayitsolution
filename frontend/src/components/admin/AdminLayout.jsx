@@ -13,6 +13,9 @@ const AdminLayout = () => {
         <Link to="/admin/users" className="hover:text-blue-400">Manage Users</Link>
         <Link to="/admin/showadmission" className="hover:text-blue-400">Admissions</Link>
         <Link to="/admin/addcourse" className="hover:text-blue-400">Add Course</Link>
+        <Link to="/admin/feedbacks" className="hover:text-blue-400">Feedbacks</Link>
+        <Link to="/admin/enquiries" className="hover:text-blue-400">Enquiries</Link>
+        <Link to="/admin/manage-admin" className="hover:text-blue-400">Manage Admin</Link>
         {/* Baaki links baad mein add kar sakte hain */}
       </div>
 

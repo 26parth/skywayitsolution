@@ -1,6 +1,6 @@
 // backend/src/routes/admin.routes.js
 import express from "express";
-import { registerAdmin, loginAdmin, refreshAdminToken, logoutAdmin } from "../controllers/admin.controller.js";
+import { registerAdmin, loginAdmin, refreshAdminToken, logoutAdmin, getAllAdmins  } from "../controllers/admin.controller.js";
 import { getAllStudents, adminUpdateUser, adminDeleteUser } from "../controllers/user.controller.js";
 import { verifyAdminAccess } from "../middleware/adminMiddleware.js";
 
@@ -15,7 +15,8 @@ router.post("/login", loginAdmin);
 // Refresh token — browser will send cookie
 router.post("/refresh-token", refreshAdminToken);
 
-
+// Get all admins
+router.get("/admins", verifyAdminAccess, getAllAdmins);
 
 // Protected example route (test)
 router.get("/me", verifyAdminAccess, (req, res) => {

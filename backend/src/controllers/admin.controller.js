@@ -177,3 +177,20 @@ export const logoutAdmin = async (req, res, next) => {
     next(err);
   }
 };
+
+/**
+ * Get All Admins
+ */
+export const getAllAdmins = async (req, res, next) => {
+  try {
+    const admins = await User.find({ role: "admin" }).select("-password");
+
+    res.json({
+      success: true,
+      count: admins.length,
+      admins,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
