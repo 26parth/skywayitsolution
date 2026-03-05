@@ -29,7 +29,7 @@ const ShowUser = () => {
   const handleUpdate = async () => {
     try {
       const { _id, fullname, email, contactNumber, role } = editUser;
-      await axiosAdmin.put(`/update-user/${_id}`, { fullname, email, contactNumber, role });
+      await axiosAdmin.put(`/update-user/${_id}`, { fullname, email, contactNumber   });
       toast.success("User details update ho gayi");
       setEditUser(null);
       fetchUsers();
@@ -60,10 +60,10 @@ const ShowUser = () => {
               <input type="text" className="w-full border p-2 rounded-lg" placeholder="Full Name" value={editUser.fullname} onChange={(e) => setEditUser({ ...editUser, fullname: e.target.value })} />
               <input type="email" className="w-full border p-2 rounded-lg" placeholder="Email" value={editUser.email} onChange={(e) => setEditUser({ ...editUser, email: e.target.value })} />
               <input type="text" className="w-full border p-2 rounded-lg" placeholder="Contact" value={editUser.contactNumber} onChange={(e) => setEditUser({ ...editUser, contactNumber: e.target.value })} />
-              <select className="w-full border p-2 rounded-lg" value={editUser.role} onChange={(e) => setEditUser({ ...editUser, role: e.target.value })}>
+              {/* <select className="w-full border p-2 rounded-lg" value={editUser.role} onChange={(e) => setEditUser({ ...editUser, role: e.target.value })}>
                 <option value="user">User</option>
                 <option value="admin">Admin</option>
-              </select>
+              </select> */}
             </div>
             <div className="flex justify-end gap-3 pt-4">
               <button onClick={() => setEditUser(null)} className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">Cancel</button>
