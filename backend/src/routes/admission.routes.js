@@ -1,6 +1,9 @@
 import { Router } from "express";
 import upload from "../middleware/multer.js";
+import { verifyAdminAccess } from "../middleware/adminMiddleware.js";
 import { verifyUserAccess } from "../middleware/authMiddleware.js";
+
+
 import {
   createAdmission,
   getAdmission,
@@ -14,10 +17,10 @@ import {
 
 const router = Router();
 
-// 🔥 CREATE Admission (AUTH REQUIRED)
+// CREATE
 router.post(
   "/",
-  verifyUserAccess,     // ✅ MUST
+  verifyUserAccess,
   upload.fields([
     { name: "photo", maxCount: 1 },
     { name: "signature", maxCount: 1 },
@@ -25,16 +28,16 @@ router.post(
   createAdmission
 );
 
-// GET ALL Admissions
-router.get("/", getAllAdmissions);
+// GET ALL
+router.get("/", verifyAdminAccess, getAllAdmissions);
 
-// GET single Admission
-router.get("/:id", getAdmission);
+// GET SINGLE
+router.get("/:id", verifyAdminAccess, getAdmission);
 
 // UPDATE
 router.put(
   "/:id",
-  verifyUserAccess,
+  verifyAdminAccess,
   upload.fields([
     { name: "photo", maxCount: 1 },
     { name: "signature", maxCount: 1 },
@@ -43,11 +46,21 @@ router.put(
 );
 
 // DELETE
-router.delete("/:id", deleteAdmission);
+router.delete("/:id", verifyAdminAccess, deleteAdmission);
 
 // Payments
-router.post("/:admissionId/payment", addPayment);
-router.put("/:admissionId/payment/:paymentId", updatePayment);
-router.delete("/:admissionId/payment/:paymentId", deletePayment);
+router.post("/:admissionId/payment", verifyAdminAccess, addPayment);
+
+router.put(
+  "/:admissionId/payment/:paymentId",
+  verifyAdminAccess,
+  updatePayment
+);
+
+router.delete(
+  "/:admissionId/payment/:paymentId",
+  verifyAdminAccess,
+  deletePayment
+);
 
 export default router;
