@@ -4,7 +4,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   user: null,
   accessToken: null,
-  loading: true, // 🔥 app start pe TRUE
+  loading: true,
 };
 
 const authSlice = createSlice({

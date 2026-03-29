@@ -3,41 +3,51 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faTwitter,
     faVimeo,
-    faFacebook,
+    faLinkedin,
 } from "@fortawesome/free-brands-svg-icons";
 import PropTypes from "prop-types";
-import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion"; 
+import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import "../styles/heading_team_member.css"
 
 // --- Data remains the same ---
 const teamMembers = [
     {
-        img: "https://cdn.easyfrontend.com/pictures/team/team_13_1.jpg",
-        name: "KHAN SAHEB",
-        designation: "HR, LATO",
+        img: "/img/team/Naresh-thakor.jpeg",
+        name: "Naresh Thkaor",
+        designation: "DJANGO Developer/MERN STACK Developer",
         socialLinks: [
             { icon: faTwitter, href: "#!" },
-            { icon: faFacebook, href: "#!" },
+            { icon: faLinkedin, href: "#!" },
             { icon: faVimeo, href: "#!" },
         ],
     },
     {
-        img: "https://cdn.easyfrontend.com/pictures/team/team_13_2.jpg",
-        name: "Ali Akbar",
-        designation: "HR, PIT",
+        img: "/img/team/Anil-Raval.jpeg",
+        name: "Anil Raval",
+        designation: "DJANGO Developer",
         socialLinks: [
             { icon: faTwitter, href: "#!" },
-            { icon: faFacebook, href: "#!" },
+            { icon: faLinkedin, href: "#!" },
             { icon: faVimeo, href: "#!" },
         ],
     },
     {
-        img: "https://cdn.easyfrontend.com/pictures/team/team_13_3.jpg",
-        name: "Sadab Bean",
-        designation: "HR, INCA",
+        img: "/img/team/Dipak-thakor.jpeg",
+        name: "Dipak Thakor",
+        designation: "MERN STACK Developer/Laravel Developer",
         socialLinks: [
             { icon: faTwitter, href: "#!" },
-            { icon: faFacebook, href: "#!" },
+            { icon: faLinkedin, href: "#!" },
+            { icon: faVimeo, href: "#!" },
+        ],
+    },
+    {
+        img: "/img/team/parth-parmar.jpeg",
+        name: "Parth Parmar",
+        designation: "MERN STACK Developer",
+        socialLinks: [
+            { icon: faTwitter, href: "#!" },
+            { icon: faLinkedin, href: "#!" },
             { icon: faVimeo, href: "#!" },
         ],
     },
@@ -46,20 +56,20 @@ const teamMembers = [
 
 // Team Member Card Component (Fixed: Color change logic refined for mobile tap)
 const TeamMemberItem = ({ member, isActive, setIsActive }) => {
-    
+
     // Detail section पर क्लिक करने पर केवल detail view को टॉगल करना चाहिए।
     const handleDetailClick = (e) => {
         // e.stopPropagation() यह सुनिश्चित करता है कि यह क्लिक ऊपर के Swipe Click को ट्रिगर न करे
-        e.stopPropagation(); 
+        e.stopPropagation();
         if (setIsActive) {
             setIsActive(prev => !prev);
         }
     };
 
     return (
-        <div className="group relative h-full w-full "> 
+        <div className="group relative h-full w-full ">
             <img src={member.img} alt={member.name} className="h-auto w-full mx-auto" />
-            <div 
+            <div
                 // ONLY THIS DIV should handle the detail toggle click
                 onClick={handleDetailClick}
                 className={`
@@ -68,8 +78,8 @@ const TeamMemberItem = ({ member, isActive, setIsActive }) => {
                     
                     // --- BACKGROUND COLOR LOGIC FIX ---
                     // Active State: Sky Blue
-                    ${isActive 
-                        ? 'bg-blue-600 pt-7 px-5 pb-20 text-white' 
+                    ${isActive
+                        ? 'bg-blue-600 pt-7 px-5 pb-20 text-white'
                         : 'bg-white dark:bg-slate-800 dark:text-white' // Inactive State
                     }
 
@@ -125,7 +135,7 @@ TeamMemberItem.propTypes = {
 const InteractiveCard = ({ member, index, isTop, onSwipe, totalCards, currentDirection }) => {
 
     // State is local to top card only
-    const [isDetailOpen, setIsDetailOpen] = useState(false); 
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
 
     const x = useMotionValue(0);
     const rotate = useTransform(x, [-200, 200], [-15, 15]);
@@ -136,14 +146,14 @@ const InteractiveCard = ({ member, index, isTop, onSwipe, totalCards, currentDir
     useEffect(() => {
         if (isTop) {
             // isTop होने पर detail state को false पर सेट करें
-            setIsDetailOpen(false); 
+            setIsDetailOpen(false);
         }
     }, [member.name, isTop]); // Dependency on member.name or isTop
 
     // Stacking logic for non-top cards (unchanged)
     if (!isTop) {
         const positionFromTop = index - currentDirection.index;
-        const visualIndex = positionFromTop < 0 ? positionFromTop + totalCards : positionFromTop; 
+        const visualIndex = positionFromTop < 0 ? positionFromTop + totalCards : positionFromTop;
 
         if (visualIndex >= 4) return null;
 
@@ -158,7 +168,7 @@ const InteractiveCard = ({ member, index, isTop, onSwipe, totalCards, currentDir
                 animate={{
                     opacity: 1,
                     scale,
-                    y: yOffset, 
+                    y: yOffset,
                     rotate: rotateValue,
                     transition: {
                         type: "spring",
@@ -178,7 +188,7 @@ const InteractiveCard = ({ member, index, isTop, onSwipe, totalCards, currentDir
                     originY: 0.5
                 }}
             >
-                <TeamMemberItem member={member} isActive={false} /> 
+                <TeamMemberItem member={member} isActive={false} />
             </motion.div>
         );
     }
@@ -186,17 +196,17 @@ const InteractiveCard = ({ member, index, isTop, onSwipe, totalCards, currentDir
     // Animation variants for the top card (Smoother, Sweeping Exit)
     const cardVariants = {
         exit: (direction) => ({
-            x: direction === 'right' ? 4000 : -4000, 
-            rotate: direction === 'right' ? 250 : -250, 
-            opacity: 0, 
-            scale: 1.1, 
+            x: direction === 'right' ? 4000 : -4000,
+            rotate: direction === 'right' ? 250 : -250,
+            opacity: 0,
+            scale: 1.1,
             transition: {
                 type: "spring",
-                stiffness: 40,    
-                damping: 15,      
-                mass: 1.2,          
-                restSpeed: 0.001, 
-                restDelta: 0.001, 
+                stiffness: 40,
+                damping: 15,
+                mass: 1.2,
+                restSpeed: 0.001,
+                restDelta: 0.001,
             }
         }),
         initial: {
@@ -206,7 +216,7 @@ const InteractiveCard = ({ member, index, isTop, onSwipe, totalCards, currentDir
             scale: 1
         }
     };
-    
+
     // Function to reset detail view on drag start (smoothly close detail on drag)
     const handleDragStart = () => {
         setIsDetailOpen(false); // Smoothly closes the detail section
@@ -215,18 +225,18 @@ const InteractiveCard = ({ member, index, isTop, onSwipe, totalCards, currentDir
     // Only drag end triggers the swipe action
     const handleDragEnd = (event, info) => {
         // detail state DragStart में पहले ही बंद हो चुका है
-        
+
         const swipeDistance = info.offset.x;
         const swipeVelocity = info.velocity.x;
 
-        const distanceThreshold = 60; 
+        const distanceThreshold = 60;
         const velocityThreshold = 100;
 
         if (Math.abs(swipeDistance) > distanceThreshold || Math.abs(swipeVelocity) > velocityThreshold) {
             onSwipe(swipeDistance > 0 ? 'right' : 'left');
         }
     };
-    
+
     // Click handler for the whole card (to trigger swipe)
     const handleSwipeClick = (e) => {
         // यह तब कॉल होता है जब पूरे कार्ड पर क्लिक किया जाता है (लेकिन detail div पर नहीं)
@@ -238,7 +248,7 @@ const InteractiveCard = ({ member, index, isTop, onSwipe, totalCards, currentDir
         <motion.div
             key={member.name}
             className="absolute top-0 left-0 w-full h-full p-12 lg:p-0 touch-none"
-            style={{ x, rotate, zIndex: totalCards }} 
+            style={{ x, rotate, zIndex: totalCards }}
             variants={cardVariants}
             initial="initial"
             custom={currentDirection.direction}
@@ -248,18 +258,18 @@ const InteractiveCard = ({ member, index, isTop, onSwipe, totalCards, currentDir
             onClick={handleSwipeClick}
 
             // Drag event handlers
-            onDragStart={handleDragStart} 
+            onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
 
             drag="x"
             dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-            dragElastic={1} 
-            
+            dragElastic={1}
+
             whileDrag={{ scale: 1.15, cursor: 'grabbing', filter: 'brightness(1.2)' }}
         >
             {/* Pass state and state setter to the item component */}
             <TeamMemberItem member={member} isActive={isDetailOpen} setIsActive={setIsDetailOpen} />
-            
+
             {/* No extra overlay needed as motion.div handles click and drag */}
         </motion.div>
     );
@@ -289,12 +299,12 @@ const TeamMember12 = () => {
     const reversedMembers = [...teamMembers].reverse();
 
     return (
-        <section className="ezy__team12 dark py-3 md:py-4 text-zinc-900 dark:text-white overflow-hidden" 
-style={{
-        background: "#050D1C"
-      }}
+        <section className="ezy__team12 dark py-3 md:py-4 text-zinc-900 dark:text-white overflow-hidden"
+            style={{
+                background: "#050D1C"
+            }}
 
->
+        >
             <div className="container px-4 mx-auto">
                 <div className="flex justify-center text-center">
                     <div className="sm:max-w-md">

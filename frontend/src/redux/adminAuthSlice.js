@@ -4,14 +4,21 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   admin: null,
   accessToken: null,
-  isLoading: true, // 🔥 VERY IMPORTANT
+  isLoading: true, 
 };
 
 const adminAuthSlice = createSlice({
   name: "adminAuth",
   initialState,
   reducers: {
+    // 🔥 Standardized name
     setAdminLoginData: (state, action) => {
+      state.admin = action.payload.admin;
+      state.accessToken = action.payload.accessToken;
+      state.isLoading = false;
+    },
+    // Same as above, just for convenience
+    setAdminCredentials: (state, action) => {
       state.admin = action.payload.admin;
       state.accessToken = action.payload.accessToken;
       state.isLoading = false;
@@ -29,6 +36,7 @@ const adminAuthSlice = createSlice({
 
 export const {
   setAdminLoginData,
+  setAdminCredentials,
   logoutAdmin,
   setAdminLoading,
 } = adminAuthSlice.actions;

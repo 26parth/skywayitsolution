@@ -4,61 +4,80 @@ import { updateAccessToken, logout } from "../redux/authSlice";
 
 const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
-  withCredentials: true, // for HttpOnly cookies
+  withCredentials: true,
 });
 
-// ----------------------
-// Request Interceptor: Attach Access Token
-// ---------------------- 
+// Request Interceptor
 axiosClient.interceptors.request.use(
   (config) => {
     const accessToken = store.getState().auth.accessToken;
-
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
-    }
-
+    if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// ----------------------
-// Response Interceptor: Refresh Token Logic
-// ----------------------
+// Response Interceptor
+let isRefreshing = false; // 🔥 Ek sath multiple calls rokne ke liye
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) prom.reject(error);
+    else prom.resolve(token);
+  });
+  failedQueue = [];
+};
+
 axiosClient.interceptors.response.use(
   (res) => res,
   async (error) => {
     const originalRequest = error.config;
 
-    // -----------------------------------------
-    // ❌ FIX: NEVER refresh after REGISTER CALL
-    // -----------------------------------------
-    if (originalRequest?.url?.includes("/auth/register")) {
-      return Promise.reject(error);
-    }
+    // 🔥 Check specifically for TOKEN_EXPIRED code from backend
+    const isExpired = error.response?.data?.code === "TOKEN_EXPIRED";
 
-    // If access token expired → try refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && isExpired && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return axiosClient(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
 
       try {
-        const refreshResponse = await axiosClient.post("/auth/refresh-token");
+        const refreshRes = await axios.post(
+          `${import.meta.env.VITE_API_URL}/auth/refresh-token`,
+          {},
+          { withCredentials: true }
+        );
+        
+        const newToken = refreshRes.data.accessToken;
+        store.dispatch(updateAccessToken(newToken));
+        
+        processQueue(null, newToken);
+        isRefreshing = false;
 
-        const newAccessToken = refreshResponse.data.accessToken;
-
-        // Update Redux
-        store.dispatch(updateAccessToken(newAccessToken));
-
-        // Retry the original request with new token
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return axiosClient(originalRequest);
-      } catch (refreshErr) {
+      } catch (err) {
+        processQueue(err, null);
+        isRefreshing = false;
+        
         store.dispatch(logout());
-        return Promise.reject(refreshErr);
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
+        return Promise.reject(err);
       }
     }
-
     return Promise.reject(error);
   }
 );

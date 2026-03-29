@@ -7,19 +7,15 @@ import { setAdminLoginData } from "../redux/adminAuthSlice";
 export const useAdminRegister = () => {
   return useMutation({
     mutationFn: async (formData) => {
-      const res = await axiosAdmin.post(" ", formData);
+      // ✔️ Path fixed to /register
+      const res = await axiosAdmin.post("/register", formData);
       return res.data;
     },
     onSuccess: () => {
-      // ❌ is line se admin register ke baad auto-login jaisa ho raha tha
-      // queryClient.invalidateQueries(["admin"]);
-
-      // ✔️ FIX: register ke baad admin fetch mat karo
-      // login karne ke baad hi admin ko store karna hai
+      // Register ke baad auto-login nahi karwana, manual login is safer for admin
     },
   });
 };
-
 
 export const useAdminLogin = () => {
   const queryClient = useQueryClient();
@@ -27,18 +23,14 @@ export const useAdminLogin = () => {
 
   return useMutation({
     mutationFn: async (formData) => {
-     const res = await axiosAdmin.post("/login", formData);
+      const res = await axiosAdmin.post("/login", formData);
       return res.data;
     },
     onSuccess: (data) => {
-      // 👇 FIXED — admin + accessToken Redux me store hoga
-      dispatch(
-        setAdminLoginData({
-          admin: data.admin,
-          accessToken: data.accessToken,
-        })
-      );
-
+      dispatch(setAdminLoginData({
+        admin: data.admin,
+        accessToken: data.accessToken,
+      }));
       queryClient.invalidateQueries(["admin"]);
     },
   });

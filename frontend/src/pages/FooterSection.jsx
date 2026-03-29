@@ -204,7 +204,7 @@ const FooterSection = () => {
     }),
   };
 
-  const direction = useRef('next'); 
+  const direction = useRef('next');
   const prevForm = useRef(currentForm);
 
   if (currentForm !== prevForm.current) {
@@ -314,8 +314,8 @@ const FooterSection = () => {
                 transition={{ ...springTransition, delay: 0.3 }}
                 className="flex w-full items-start gap-4 justify-start"
               >
-                <MapPinIcon className="h-8 w-8 text-sky-400 flex-shrink-0 mt-1" /> 
-                <div> 
+                <MapPinIcon className="h-8 w-8 text-sky-400 flex-shrink-0 mt-1" />
+                <div>
                   <p className="font-semibold text-white text-base">Address</p>
                   <p className="text-gray-400 text-sm lg:text-base leading-tight">
                     First Floor, Lal Bhuvan, Plot No - 493,<br />
@@ -324,7 +324,7 @@ const FooterSection = () => {
                   </p>
                 </div>
               </motion.div>
-              
+
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -338,7 +338,7 @@ const FooterSection = () => {
                   <p className="text-gray-400 text-sm lg:text-base leading-tight">+91 80000 67963</p>
                 </div>
               </motion.div>
-              
+
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}

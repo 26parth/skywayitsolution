@@ -18,12 +18,29 @@ export default function Register() {
 
   const onSubmit = async (e) => {
     e.preventDefault();
+
+    // 1. Gmail Validation (Basic check ki domain @gmail.com hai ya nahi)
+    if (!form.email.endsWith("@gmail.com")) {
+      return alert("Email is not valid. Please use a valid Google/Gmail account.");
+    }
+
+    // 2. Number Validation
+    if (form.contactNumber.length !== 10) {
+      return alert("Contact number must be 10 digits.");
+    }
+
+    // 3. Password Validation
+    const passRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,}$/;
+    if (!passRegex.test(form.password)) {
+      return alert("Password must be 6+ chars with a number and special character.");
+    }
+
     try {
       await mutation.mutateAsync(form);
-      alert("Registration successful. Please login.");
+      alert("Registration successful!");
       navigate("/login");
     } catch (err) {
-      alert(err.response?.data?.message || err.message);
+      alert(err.response?.data?.message || "Registration failed");
     }
   };
 
@@ -124,7 +141,7 @@ export default function Register() {
             <p className="text-gray-400 text-sm">
               Already have an account?{" "}
               <button
-                onClick={() => navigate("/login")}
+                onClick={() => navigate("/edit-profile")}
                 className="text-sky-400 hover:text-sky-300 font-semibold transition-colors"
               >
                 Sign in

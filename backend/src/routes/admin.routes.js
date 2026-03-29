@@ -1,6 +1,6 @@
 // backend/src/routes/admin.routes.js
 import express from "express";
-import { registerAdmin, loginAdmin, refreshAdminToken, logoutAdmin, getAllAdmins  } from "../controllers/admin.controller.js";
+import { registerAdmin, loginAdmin, refreshAdminToken, logoutAdmin, getAllAdmins, logoutAdminAllDevices,  } from "../controllers/admin.controller.js";
 import { getAllStudents, adminUpdateUser, adminDeleteUser } from "../controllers/user.controller.js";
 import { verifyAdminAccess } from "../middleware/adminMiddleware.js";
 
@@ -25,6 +25,7 @@ router.get("/me", verifyAdminAccess, (req, res) => {
 
 // Logout
 router.post("/logout", logoutAdmin);
+router.post("/logout-all", verifyAdminAccess, logoutAdminAllDevices);
 
 router.get("/users", verifyAdminAccess, getAllStudents);
 router.put("/update-user/:id", verifyAdminAccess, adminUpdateUser);

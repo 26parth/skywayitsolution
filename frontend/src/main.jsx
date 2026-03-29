@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import App from "./App.jsx";
 import "./index.css";
 import { Provider } from "react-redux";
@@ -17,7 +17,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <Provider store={store}>                  {/* Redux */}
       <QueryClientProvider client={queryClient}> {/* React Query */}
         <BrowserRouter>
-          <App />
+          <GoogleOAuthProvider clientId="959112020039-1k2irt3fdu71gk11d2nl0vosa7oi780p.apps.googleusercontent.com">
+            <App />
+          </GoogleOAuthProvider>
         </BrowserRouter>
       </QueryClientProvider>
     </Provider>

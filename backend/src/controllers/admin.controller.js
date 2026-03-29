@@ -1,37 +1,53 @@
 // backend/src/controllers/admin.controller.js
 import User from "../models/User.model.js";
-import {
-  createAdminAccessToken,
-  createAdminRefreshToken,
-  verifyAdminRefreshToken
-} from "../utils/token.js";
-import bcrypt from "bcryptjs";
+import sessionModel from "../models/session.model.js";
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
-/**
- * Helper: Set refresh token cookie
- */
-const setRefreshCookie = (res, token) => {
-  const cookieName = process.env.ADMIN_REFRESH_COOKIE || "admin_jid";
-  const secure = process.env.COOKIE_SECURE === "true";
-  const sameSite = process.env.COOKIE_SAMESITE || "none";
-  const domain = process.env.COOKIE_DOMAIN || undefined;
+// ==========================================
+// 🛡️ ADMIN INTERNAL HELPERS
+// ==========================================
 
-  const cookieOptions = {
-    httpOnly: true,
-    secure,
-    sameSite,
-    path: "/",
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-  };
-
-  if (domain) cookieOptions.domain = domain;
-
-  res.cookie(cookieName, token, cookieOptions);
+const createAccessToken = (user) => {
+  return jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN || "15m" }
+  );
 };
 
-/**
- * Admin Register (NO AUTO LOGIN)
- */
+const createRefreshToken = (user) => {
+  return jwt.sign(
+    { id: user._id },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: "30d" }
+  );
+};
+
+const hashToken = (token) => {
+  return crypto.createHash("sha256").update(token).digest("hex");
+};
+
+const setAdminRefreshCookie = (res, token) => {
+  const cookieName = process.env.ADMIN_REFRESH_COOKIE || "admin_jid";
+  
+  // 🔥 FIX 1: Localhost compatibility set ki hai
+  const isProd = process.env.NODE_ENV === "production";
+
+  res.cookie(cookieName, token, {
+    httpOnly: true,
+    secure: isProd, // Local pe false rahega
+    sameSite: isProd ? "None" : "Lax", // Local me Lax work karega
+    path: "/",
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+  });
+};
+
+// ==========================================
+// 🚀 ADMIN CONTROLLERS
+// ==========================================
+
+/** Admin Register (Manual login required) */
 export const registerAdmin = async (req, res, next) => {
   try {
     const { fullname, email, contactNumber, password } = req.body;
@@ -40,8 +56,7 @@ export const registerAdmin = async (req, res, next) => {
       return res.status(400).json({ message: "Email and password required" });
 
     const existing = await User.findOne({ email });
-    if (existing)
-      return res.status(409).json({ message: "Admin already exists" });
+    if (existing) return res.status(409).json({ message: "Admin already exists" });
 
     const admin = new User({
       fullname,
@@ -53,11 +68,6 @@ export const registerAdmin = async (req, res, next) => {
 
     await admin.save();
 
-    // ❌ NO ACCESS TOKEN
-    // ❌ NO REFRESH TOKEN
-    // ❌ NO COOKIE SET
-    // REGISTER KA MATLAB LOGIN NAHI HAI!
-
     res.status(201).json({
       success: true,
       message: "Admin registered successfully. Please login manually.",
@@ -66,35 +76,35 @@ export const registerAdmin = async (req, res, next) => {
         fullname: admin.fullname,
         email: admin.email,
         role: admin.role,
-        contactNumber: admin.contactNumber,
       },
     });
-  } catch (err) {
-    next(err);
-  }
+  } catch (err) { next(err); }
 };
 
-/**
- * Admin Login
- */
+/** Admin Login */
 export const loginAdmin = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    const admin = await User.findOne({ email }).select("+password");
 
-    if (!email || !password)
-      return res.status(400).json({ message: "Email and password required" });
-
-    const admin = await User.findOne({ email });
     if (!admin || admin.role !== "admin")
       return res.status(401).json({ message: "Invalid admin credentials" });
 
     const ok = await admin.comparePassword(password);
     if (!ok) return res.status(401).json({ message: "Invalid admin credentials" });
 
-    const accessToken = createAdminAccessToken(admin);
-    const refreshToken = createAdminRefreshToken(admin);
+    const accessToken = createAccessToken(admin);
+    const refreshToken = createRefreshToken(admin);
 
-    setRefreshCookie(res, refreshToken);
+    // Create Admin Session
+    await sessionModel.create({
+      user: admin._id,
+      refreshTokenHash: hashToken(refreshToken),
+      ip: req.ip,
+      userAgent: req.headers["user-agent"],
+    });
+
+    setAdminRefreshCookie(res, refreshToken);
 
     res.json({
       success: true,
@@ -104,43 +114,45 @@ export const loginAdmin = async (req, res, next) => {
         fullname: admin.fullname,
         email: admin.email,
         role: admin.role,
-        contactNumber: admin.contactNumber,
       },
     });
-  } catch (err) {
-    next(err);
-  }
+  } catch (err) { next(err); }
 };
 
-/**
- * Refresh Admin Token
- */
+/** Refresh Admin Token (Rotation Logic) */
 export const refreshAdminToken = async (req, res, next) => {
   try {
     const cookieName = process.env.ADMIN_REFRESH_COOKIE || "admin_jid";
     const token = req.cookies?.[cookieName];
 
-    if (!token)
-      return res.status(401).json({ message: "No refresh token" });
+    if (!token) return res.status(401).json({ message: "Admin session expired" });
 
     let payload;
     try {
-      payload = verifyAdminRefreshToken(token);
-    } catch (err) {
-      return res.status(401).json({ message: "Invalid refresh token" });
+      payload = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+    } catch (error) {
+      return res.status(401).json({ message: "Invalid admin session" });
+    }
+
+    const hash = hashToken(token);
+    const session = await sessionModel.findOne({ refreshTokenHash: hash, revoked: false });
+
+    if (!session) {
+      await sessionModel.updateMany({ user: payload.id }, { revoked: true });
+      res.clearCookie(cookieName, { path: "/" });
+      return res.status(403).json({ message: "Security Alert: Admin session reuse detected." });
     }
 
     const admin = await User.findById(payload.id);
+    if (!admin || admin.role !== "admin") return res.status(401).json({ message: "Unauthorized" });
 
-    // 🔥 INDUSTRY LEVEL ROLE CHECK
-    if (!admin || admin.role !== "admin") {
-      return res.status(401).json({ message: "Unauthorized admin" });
-    }
+    const accessToken = createAccessToken(admin);
+    const newRefreshToken = createRefreshToken(admin);
+    
+    session.refreshTokenHash = hashToken(newRefreshToken);
+    await session.save();
 
-    if (!admin)
-      return res.status(401).json({ message: "Admin not found" });
-
-    const accessToken = createAdminAccessToken(admin);
+    setAdminRefreshCookie(res, newRefreshToken);
 
     res.json({
       success: true,
@@ -150,47 +162,64 @@ export const refreshAdminToken = async (req, res, next) => {
         fullname: admin.fullname,
         email: admin.email,
         role: admin.role,
-        contactNumber: admin.contactNumber,
       },
     });
-  } catch (err) {
-    next(err);
+  } catch (err) { 
+    res.clearCookie(process.env.ADMIN_REFRESH_COOKIE || "admin_jid", { path: "/" });
+    next(err); 
   }
 };
 
+// backend/src/controllers/admin.controller.js
 
-
-/**
- * Admin Logout
- */
+/** Admin Logout (Current Device) */
 export const logoutAdmin = async (req, res, next) => {
   try {
     const cookieName = process.env.ADMIN_REFRESH_COOKIE || "admin_jid";
+    const token = req.cookies?.[cookieName];
 
-    res.clearCookie(cookieName, { path: "/" });
+    if (token) {
+      await sessionModel.deleteOne({ refreshTokenHash: hashToken(token) });
+    }
 
-    return res.json({
-      success: true,
-      message: "Admin logged out",
+    const isProd = process.env.NODE_ENV === "production";
+    res.clearCookie(cookieName, { 
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "None" : "Lax",
+      path: "/" 
     });
-  } catch (err) {
-    next(err);
-  }
+
+    return res.json({ success: true, message: "Admin logged out from this device" });
+  } catch (err) { next(err); }
 };
 
-/**
- * Get All Admins
- */
+export const logoutAdminAllDevices = async (req, res, next) => {
+  try {
+    // req.user hume verifyAdminAccess middleware se milega
+    const adminId = req.user._id; 
+    const cookieName = process.env.ADMIN_REFRESH_COOKIE || "admin_jid";
+
+    // 1. DB se is admin ki saari sessions ura do
+    await sessionModel.deleteMany({ user: adminId });
+
+    // 2. Cookie clear kar do
+    const isProd = process.env.NODE_ENV === "production";
+    res.clearCookie(cookieName, { 
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "None" : "Lax",
+      path: "/" 
+    });
+
+    return res.json({ success: true, message: "Logged out from all devices successfully" });
+  } catch (err) { next(err); }
+};
+
+/** Get All Admins */
 export const getAllAdmins = async (req, res, next) => {
   try {
     const admins = await User.find({ role: "admin" }).select("-password");
-
-    res.json({
-      success: true,
-      count: admins.length,
-      admins,
-    });
-  } catch (err) {
-    next(err);
-  }
+    res.json({ success: true, count: admins.length, admins });
+  } catch (err) { next(err); }
 };

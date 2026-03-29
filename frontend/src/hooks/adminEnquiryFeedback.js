@@ -22,12 +22,24 @@ export const useDeleteEnquiry = () => {
 // ---------------- FEEDBACK ----------------
 export const useAdminFeedbacks = () =>
   useQuery({
-    queryKey: ["admin-feedbacks"],
+    queryKey: ["admin-feedbacks"], // Ye key hamesha same honi chahiye
     queryFn: async () => {
       const res = await axiosAdmin.get("/feedback");
       return res.data.feedbacks;
     },
   });
+
+export const usePinFeedback = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    // Industry Tip: axiosAdmin use karo taaki baar-baar full URL na likhna pade
+    mutationFn: (id) => axiosAdmin.patch(`/feedback/pin/${id}`),
+    onSuccess: () => {
+      // FIX: Yahan wahi naam likho jo upar queryKey mein hai
+      qc.invalidateQueries(["admin-feedbacks"]);
+    },
+  });
+};
 
 export const useDeleteFeedback = () => {
   const qc = useQueryClient();
