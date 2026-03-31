@@ -23,12 +23,14 @@ export const sendCertificateEmail = async (toEmail, toName, filePath) => {
           <p>Please find your certificate attached.</p>
           <p>Regards,<br/>Skyway IT Solution</p>
         `,
-        attachment: [
-          {
-            content,
-            name: filename,
-          },
-        ],
+
+attachment: [
+  {
+    content: content,
+    name: filename,
+    type: "application/pdf" // 👈 Ye add karna zaroori hai Brevo ke liye
+  },
+],
       },
       {
         headers: {
