@@ -1,16 +1,29 @@
 // backend/src/utils/brevoMailer.js
 import axios from "axios";
-import fs from "fs";
 import path from "path";
 
 export const sendCertificateEmail = async (toEmail, toName, filePath) => {
   try {
-    // 1. File system se certificate read karke Base64 me badlo
-    const fileBuffer = await fs.promises.readFile(filePath);
-    const content = fileBuffer.toString("base64");
-    const filename = path.basename(filePath);
+    let content;
+    let filename;
 
-    // 2. Brevo API request
+    // 1. Agar path Cloudinary ka URL hai (https se start ho raha hai)
+    if (filePath.startsWith('http')) {
+      const responseFile = await axios.get(filePath, { responseType: 'arraybuffer' });
+      content = Buffer.from(responseFile.data).toString("base64");
+      filename = path.basename(filePath);
+    } 
+    // 2. Agar path local file ka hai (Fallback ke lie safe check)
+    else {
+      const fileBuffer = await fs.promises.readFile(filePath);
+      content = fileBuffer.toString("base64");
+      filename = path.basename(filePath);
+      
+      // Local file send hone ke baad delete karna best practice hai
+      try { await fs.promises.unlink(filePath); } catch (e) {}
+    }
+
+    // 3. Brevo API Call
     const response = await axios.post(
       "https://api.brevo.com/v3/smtp/email",
       {
@@ -29,7 +42,7 @@ export const sendCertificateEmail = async (toEmail, toName, filePath) => {
           {
             content: content,
             name: filename,
-            type: "application/pdf" // ✅ Mandatory for Brevo attachments
+            type: "application/pdf"
           },
         ],
       },
@@ -40,13 +53,6 @@ export const sendCertificateEmail = async (toEmail, toName, filePath) => {
         },
       }
     );
-
-    // ✅ Best Practice: File send hone ke baad server se delete karo taaki space na bhare
-    try {
-      await fs.promises.unlink(filePath);
-    } catch (err) {
-      console.error("Failed to delete temp file:", err.message);
-    }
 
     return response.data;
   } catch (error) {
