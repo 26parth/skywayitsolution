@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { useLogin } from "../hooks/authQueries";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion"; 
+import { motion } from "framer-motion";
 import { GoogleLogin } from '@react-oauth/google';
 
 // ❌ Isko delete karo: import axios from "axios";
 // 🔥 FIX 1: Apne custom axiosClient ko import karo jisme withCredentials pehle se true hai!
-import axiosClient from "../lib/axiosClient"; 
+import axiosClient from "../lib/axiosClient";
 
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../redux/authSlice";
@@ -26,7 +26,7 @@ export default function Login() {
       if (res.user.role === "student" && !res.user.isProfileComplete) {
         navigate("/edit-profile?reason=complete_profile");
       } else {
-        navigate("/"); 
+        navigate("/");
       }
     } catch (err) {
       alert(err.response?.data?.message || "Login failed");
@@ -46,7 +46,7 @@ export default function Login() {
       if (res.data.isProfileComplete === false) {
         navigate("/edit-profile?reason=complete_profile");
       } else {
-        navigate("/"); 
+        navigate("/");
       }
     } catch (err) {
       console.error(err);
@@ -107,6 +107,16 @@ export default function Login() {
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-500 focus:outline-none focus:border-sky-500/50 focus:ring-1 focus:ring-sky-500/50 transition-all"
               />
+            </div>
+            {/* 🔥 NEW: Forgot Password Link */}
+            <div className="flex justify-end !mt-2">
+              <button
+                type="button"
+                onClick={() => navigate("/forgot-password")}
+                className="text-xs text-sky-400 hover:text-sky-300 font-medium transition-colors"
+              >
+                Forgot Password?
+              </button>
             </div>
 
             {/* Submit Button (Course Card Apply button jaisa style) */}

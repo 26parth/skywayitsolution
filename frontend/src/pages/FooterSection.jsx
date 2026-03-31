@@ -1,9 +1,13 @@
+// C:\Users\hp\OneDrive\Desktop\28 jan skyway\skywayitsolution\frontend\src\pages\FooterSection.jsx
 import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 // Heroicons for contact info
 import { MapPinIcon, PhoneIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
 // Lucide-react for robust social media icons
 import { Facebook, Twitter, Linkedin, Youtube } from 'lucide-react';
+
+// 🔥 FIX: fetch ki jagah axiosClient import karo unauthorized error ke liye
+import axiosClient from "../lib/axiosClient"; 
 
 // --- Animation Configuration ---
 const springTransition = {
@@ -20,7 +24,6 @@ const viewPortProps = {
 
 // --- EnquiryForm Component ---
 const EnquiryForm = ({ springTransition, viewPortProps }) => {
-  // Backend Logic
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
   const [status, setStatus] = useState("");
 
@@ -28,18 +31,16 @@ const EnquiryForm = ({ springTransition, viewPortProps }) => {
     e.preventDefault();
     setStatus("sending");
     try {
-      // Yahan apna backend endpoint dalein
-      const response = await fetch("http://localhost:5000/api/enquiry", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      if (response.ok) {
+      // 🔥 FIX: axiosClient ka use kiya taaki auth headers issue na karein
+      const response = await axiosClient.post("/enquiry", formData);
+      
+      if (response.status === 200 || response.status === 201) {
         alert("Enquiry sent successfully!");
         setFormData({ name: "", email: "", message: "" });
       }
     } catch (err) {
-      alert("Error sending enquiry.");
+      console.error(err);
+      alert(err.response?.data?.message || "Error sending enquiry.");
     } finally {
       setStatus("");
     }
@@ -103,7 +104,6 @@ const EnquiryForm = ({ springTransition, viewPortProps }) => {
 
 // --- FeedbackForm Component ---
 const FeedbackForm = ({ springTransition, viewPortProps }) => {
-  // Backend Logic
   const [formData, setFormData] = useState({ name: "", email: "", feedback: "" });
   const [status, setStatus] = useState("");
 
@@ -111,17 +111,16 @@ const FeedbackForm = ({ springTransition, viewPortProps }) => {
     e.preventDefault();
     setStatus("sending");
     try {
-      const response = await fetch("http://localhost:5000/api/feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      if (response.ok) {
+      // 🔥 FIX: axiosClient ka use kiya taaki auth headers send ho sake
+      const response = await axiosClient.post("/feedback", formData);
+      
+      if (response.status === 200 || response.status === 201) {
         alert("Feedback submitted! Thank you.");
         setFormData({ name: "", email: "", feedback: "" });
       }
     } catch (err) {
-      alert("Error submitting feedback.");
+      console.error(err);
+      alert(err.response?.data?.message || "Error submitting feedback.");
     } finally {
       setStatus("");
     }
@@ -263,6 +262,7 @@ const FooterSection = () => {
               </button>
             </div>
 
+            {/* 🔥 FIX 1: Non-boolean attribute error yahi se tha (yahan se random text hataya jo line disrupt kar raha tha) */}
             <div className="relative w-full h-[550px] sm:h-[510px] xs:h-[480px]" style={{ perspective: 1000 }}>
               <AnimatePresence custom={direction.current}>
                 {currentForm === 'enquiry' && (

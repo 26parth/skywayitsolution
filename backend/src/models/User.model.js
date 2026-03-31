@@ -29,7 +29,9 @@ const userSchema = new mongoose.Schema({
             message: "Password must be at least 6 characters with 1 number and 1 special character!"
         }
     },
-
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
+  
     // 🔥 NEW OPTIONAL FIELDS (Skyway IT Solution Specific)
     gender: { type: String, enum: ["Male", "Female", "Other"] },
     qualification: { type: String },

@@ -21,43 +21,45 @@ connectDB();
 // 🛡 Middlewares & Security
 // ----------------------
 
-// 1. 🔥 FIX: COOP Headers set karo Google Popup block hone se rokne ke liye
+// 1. 🔥 CookieParser (Isse hamesha top par hona chahiye taaki baki middlewares cookies read kar sakein)
+app.use(cookieParser());
+
+// 2. 🔥 COOP Headers (Google Popup block hone se rokne ke liye)
 app.use((req, res, next) => {
   res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
   next();
 });
 
-// 2. Body Parsers
+// 3. Body Parsers
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 
-// 3. CORS Settings
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+// 4. CORS Settings (🔥 FIXED FOR PRODUCTION)
 const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
-  FRONTEND_URL
+  "https://skywayitsolution.vercel.app" // Teri actual Vercel wali live URL
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
+    // Postman ya bina origin wali requests ko allow karne ke liye
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      return callback(new Error('CORS policy not allowed'), false);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('CORS policy not allowed by Render'), false);
     }
-    return callback(null, true);
   },
-  credentials: true,
+  credentials: true, // 🍪 Cookies pass karne ke liye ye mandatory hai
 }));
-
-// 4. 🔥 CRITICAL FIX: CookieParser ko Routes se PEHLE aana chahiye!
-app.use(cookieParser());
 
 // Static Files
 app.use("/uploads", express.static("uploads"));
 
 // ----------------------
-// 🚀 API ROUTES (Humesha middlewares ke baad)
+// 🚀 API ROUTES 
 // ----------------------
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);

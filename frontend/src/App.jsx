@@ -23,6 +23,8 @@ import OurServicesSection from './pages/OurServicesSection';
 import FeedbackSection from './pages/FeedbackSection';
 import FooterSection from './pages/FooterSection';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
 import EditProfile from './pages/EditProfile';
@@ -41,12 +43,12 @@ import Manageadmin from './pages/admin/Manageadmin';
 
 const App = () => {
   // 1. SARE HOOKS TOP PAR (KISI CONDITION SE PEHLE)
-  useAdminPersist(); 
-  useAuthPersist(); 
+  useAdminPersist();
+  useAuthPersist();
 
   const userLoading = useSelector((state) => state.auth.loading);
   const adminLoading = useSelector((state) => state.adminAuth.loading);
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
 
@@ -64,7 +66,7 @@ const App = () => {
 
   // 2. CONDITIONAL RETURN (HOOKS KE BAAD)
   // Jab tak Redux check kar raha hai YA timer chal raha hai, Loader dikhao
-  if (userLoading || adminLoading ) {
+  if (userLoading || adminLoading) {
     return null;
   }
 
@@ -74,31 +76,34 @@ const App = () => {
       <Routes>
         {/* Main Website Sections */}
         <Route path="/" element={
-            <>
-              <section id="home"><Home /></section>
-              <section id="features"><Features /></section>
-              <section id="courses"><Card /></section>
-              <section id="teamMembers"><Members /></section>
-              <section id="project"><Project /></section>
-              <section id="ourServices"><OurServicesSection /></section>
-              <section id="feedback"><FeedbackSection /></section>
-              <section id="footer"><FooterSection /></section>
+          <>
+            <section id="home"><Home /></section>
+            <section id="features"><Features /></section>
+            <section id="courses"><Card /></section>
+            <section id="teamMembers"><Members /></section>
+            <section id="project"><Project /></section>
+            <section id="ourServices"><OurServicesSection /></section>
+            <section id="feedback"><FeedbackSection /></section>
+            <section id="footer"><FooterSection /></section>
 
-              <FloatingButton onClick={handleButtonClick} />
-              <GameModal isOpen={isModalOpen} onClose={handleModalClose} />
-            </>
-          }
+            <FloatingButton onClick={handleButtonClick} />
+            <GameModal isOpen={isModalOpen} onClose={handleModalClose} />
+          </>
+        }
         />
 
         {/* Auth & Admission */}
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/admissionform" element={<AdmissionForm />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
         {/* User Protected */}
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<Profile />} />
           <Route path="/edit-profile" element={<EditProfile />} />
+        <Route path="/admissionform" element={<AdmissionForm />} />
+
         </Route>
 
         {/* Admin Public */}
@@ -113,7 +118,7 @@ const App = () => {
           <Route path="/admin/users" element={<ShowUser />} />
           <Route path="/admin/enquiries" element={<Enquiries />} />
           <Route path="/admin/feedbacks" element={<Feedbacks />} />
-          <Route path="/admin/manage-admin" element={<Manageadmin/>} />
+          <Route path="/admin/manage-admin" element={<Manageadmin />} />
         </Route>
 
         {/* 404 */}

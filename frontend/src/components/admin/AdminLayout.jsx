@@ -59,6 +59,7 @@ const AdminLayout = () => {
           <Link to="/admin/showadmission" className="p-3 rounded-lg hover:bg-white/5 transition-all">Admissions</Link>
           <Link to="/admin/addcourse" className="p-3 rounded-lg hover:bg-white/5 transition-all">Add Course</Link>
           <Link to="/admin/enquiries" className="p-3 rounded-lg hover:bg-white/5 transition-all">Enquiries</Link>
+          <Link to="/admin/feedbacks" className="p-3 rounded-lg hover:bg-white/5 transition-all">Feedback</Link>
           <Link to="/admin/manage-admin" className="p-3 rounded-lg hover:bg-white/5 transition-all text-sky-200">Admins</Link>
         </nav>
       </aside>

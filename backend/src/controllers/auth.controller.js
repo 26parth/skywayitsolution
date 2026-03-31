@@ -3,6 +3,7 @@ import sessionModel from "../models/session.model.js";
 import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import { sendForgotPasswordEmail } from "../utils/brevoMailer.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -303,3 +304,67 @@ export const logoutAllDevices = async (req, res, next) => {
     return res.json({ success: true, message: "Logged out from all devices successfully" });
   } catch (err) { next(err); }
 };
+
+
+/** 🔥 Controller 1: Request Password Reset (Send Mail) */
+export const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      // Security rule: Email leak na ho isliye error 404 mat dena.
+      return res.status(200).json({ success: true, message: "Agar ye email registered hoga toh link mil jayegi." });
+    }
+
+    // 1. Ek random hex token generate karo
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
+    // 2. Token ko hash karke DB me save karo (Taki koi database churaye tab bhi token na mile)
+    const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+    
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 mins expiry
+    await user.save();
+
+    // 3. Frontend URL banao
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+    // 4. Mail bhejo
+    await sendForgotPasswordEmail(user.email, user.fullname, resetUrl);
+
+    res.json({ success: true, message: "Password reset link sent to your email!" });
+
+  } catch (err) { next(err); }
+};
+
+/** 🔥 Controller 2: Reset Password (Updating DB) */
+export const resetPassword = async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    // Aaye hue token ko hash karo DB se match karne ke liye
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    // Check karo token valid hai aur expired nahi hua hai
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: Date.now() } // $gt means greater than current time
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid token or session expired." });
+    }
+
+    // Naya password set karo
+    user.password = password; 
+    user.resetPasswordToken = undefined; // Use clear kar do
+    user.resetPasswordExpires = undefined; // Use clear kar do
+    await user.save();
+
+    res.json({ success: true, message: "Password reset successfully! Now you can login." });
+
+  } catch (err) { next(err); }
+};
+
