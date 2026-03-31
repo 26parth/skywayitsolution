@@ -1,4 +1,3 @@
-// C:\Users\hp\OneDrive\Desktop\28 jan skyway\skywayitsolution\frontend\src\pages\FooterSection.jsx
 import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 // Heroicons for contact info
@@ -7,7 +6,7 @@ import { MapPinIcon, PhoneIcon, EnvelopeIcon } from "@heroicons/react/24/outline
 import { Facebook, Twitter, Linkedin, Youtube } from 'lucide-react';
 
 // 🔥 FIX: fetch ki jagah axiosClient import karo unauthorized error ke liye
-import axiosClient from "../lib/axiosClient"; 
+import axiosClient from "../lib/axiosClient";
 
 // --- Animation Configuration ---
 const springTransition = {
@@ -31,9 +30,9 @@ const EnquiryForm = ({ springTransition, viewPortProps }) => {
     e.preventDefault();
     setStatus("sending");
     try {
-      // 🔥 FIX: axiosClient ka use kiya taaki auth headers issue na karein
-      const response = await axiosClient.post("/enquiry", formData);
-      
+      // 🔥 FIX: Direct Render URL pass kiya taaki localhost ki error na aaye
+      const response = await axiosClient.post("https://skywayitsolution.onrender.com/api/enquiry", formData);
+
       if (response.status === 200 || response.status === 201) {
         alert("Enquiry sent successfully!");
         setFormData({ name: "", email: "", message: "" });
@@ -111,9 +110,9 @@ const FeedbackForm = ({ springTransition, viewPortProps }) => {
     e.preventDefault();
     setStatus("sending");
     try {
-      // 🔥 FIX: axiosClient ka use kiya taaki auth headers send ho sake
-      const response = await axiosClient.post("/feedback", formData);
-      
+      // 🔥 FIX: Direct Render URL pass kiya taaki localhost ki error na aaye
+      const response = await axiosClient.post("https://skywayitsolution.onrender.com/api/feedback", formData);
+
       if (response.status === 200 || response.status === 201) {
         alert("Feedback submitted! Thank you.");
         setFormData({ name: "", email: "", feedback: "" });
@@ -262,7 +261,6 @@ const FooterSection = () => {
               </button>
             </div>
 
-            {/* 🔥 FIX 1: Non-boolean attribute error yahi se tha (yahan se random text hataya jo line disrupt kar raha tha) */}
             <div className="relative w-full h-[550px] sm:h-[510px] xs:h-[480px]" style={{ perspective: 1000 }}>
               <AnimatePresence custom={direction.current}>
                 {currentForm === 'enquiry' && (
@@ -363,7 +361,7 @@ const FooterSection = () => {
               className="mt-4 rounded-xl overflow-hidden shadow-2xl h-60 sm:h-80 w-full"
             >
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3667.245642456424!2d72.639!3d23.23!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjPCsDEzJzQ4LjAiTiA3MsKwMzgnMjAuNCJF!5e0!3m2!1sen!2sin!4v1630000000000"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3667.439589415494!2d72.6412193!3d23.2351222!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjPCsDE0JzA2LjQiTiA3MsKwMzgnMjguNCJF!5e0!3m2!1sen!2sin!4v1610000000000!5m2!1sen!2sin"
                 width="100%"
                 height="100%"
                 style={{ border: 0, minHeight: "240px" }}
