@@ -1,6 +1,7 @@
 // backend/src/utils/brevoMailer.js
 import axios from "axios";
 import path from "path";
+import fs from "fs"; // Fallback ke liye module rakha hai
 
 export const sendCertificateEmail = async (toEmail, toName, filePath) => {
   try {
@@ -13,7 +14,7 @@ export const sendCertificateEmail = async (toEmail, toName, filePath) => {
       content = Buffer.from(responseFile.data).toString("base64");
       filename = path.basename(filePath);
     } 
-    // 2. Agar path local file ka hai (Fallback ke lie safe check)
+    // 2. Agar path local file ka hai (In case koi change ho)
     else {
       const fileBuffer = await fs.promises.readFile(filePath);
       content = fileBuffer.toString("base64");
