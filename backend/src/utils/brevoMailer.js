@@ -5,10 +5,12 @@ import path from "path";
 
 export const sendCertificateEmail = async (toEmail, toName, filePath) => {
   try {
+    // 1. File system se certificate read karke Base64 me badlo
     const fileBuffer = await fs.promises.readFile(filePath);
     const content = fileBuffer.toString("base64");
     const filename = path.basename(filePath);
 
+    // 2. Brevo API request
     const response = await axios.post(
       "https://api.brevo.com/v3/smtp/email",
       {
@@ -23,22 +25,28 @@ export const sendCertificateEmail = async (toEmail, toName, filePath) => {
           <p>Please find your certificate attached.</p>
           <p>Regards,<br/>Skyway IT Solution</p>
         `,
-
-attachment: [
-  {
-    content: content,
-    name: filename,
-    type: "application/pdf" // 👈 Ye add karna zaroori hai Brevo ke liye
-  },
-],
+        attachment: [
+          {
+            content: content,
+            name: filename,
+            type: "application/pdf" // ✅ Mandatory for Brevo attachments
+          },
+        ],
       },
       {
         headers: {
-          "api-key": process.env.BREVO_API_KEY, // ✅ MAIN FIX
+          "api-key": process.env.BREVO_API_KEY,
           "Content-Type": "application/json",
         },
       }
     );
+
+    // ✅ Best Practice: File send hone ke baad server se delete karo taaki space na bhare
+    try {
+      await fs.promises.unlink(filePath);
+    } catch (err) {
+      console.error("Failed to delete temp file:", err.message);
+    }
 
     return response.data;
   } catch (error) {

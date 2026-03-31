@@ -50,7 +50,7 @@ export const sendCertificateByAdmin = async (req, res) => {
     console.error("CERTIFICATE ERROR:", error);
     res.status(500).json({
       success: false,
-      message: error?.response?.data?.message || "Certificate sending failed", // 👈 Isse exact error message frontend par dikhega
+      message: "Certificate sending failed",
     });
   }
 };

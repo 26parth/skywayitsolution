@@ -1,28 +1,34 @@
 import multer from "multer";
-import { v2 as cloudinary } from 'cloudinary';
-import { CloudinaryStorage } from 'multer-storage-cloudinary';
-import dotenv from 'dotenv';
+import fs from "fs";
+import path from "path";
 
+// Ensure upload folder exists on server
+const uploadDir = "uploads/";
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
 
-dotenv.config();
-// Cloudinary Configuration
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
-
-
-// Cloudinary Storage Engine for Multer
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'skyway_uploads', // Cloudinary pe automatic folder ban jayega
-    allowed_formats: ['jpg', 'png', 'jpeg', 'pdf'], // Industry level restriction
-    transformation: [{ width: 500, height: 500, crop: 'limit' }] // Optimization
+// Local Storage Engine for Multer
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadDir); // Files Render server ke 'uploads' folder me save hongi
   },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
 });
 
-const upload = multer({ storage });
+const upload = multer({ 
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+    // PDF only restriction
+    if (file.mimetype === "application/pdf") {
+      cb(null, true);
+    } else {
+      cb(new Error("Only PDF files are allowed!"), false);
+    }
+  }
+});
+
 export default upload;
