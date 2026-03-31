@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import axios from "axios";
+import axiosClient from "../lib/axiosClient";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
 
@@ -14,7 +14,8 @@ const FeedbackSection = () => {
   useEffect(() => {
     const fetchFeedbacks = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/feedback/visible");
+      // Sirf itna path do, baseURL apne aap Render ka utha lega
+const res = await axiosClient.get("/api/feedback/visible");
         if (res.data?.feedbacks) setTestimonials(res.data.feedbacks);
       } catch (err) { console.error("❌ Error:", err); }
       finally { setLoading(false); }

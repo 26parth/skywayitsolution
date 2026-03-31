@@ -31,7 +31,7 @@ const EnquiryForm = ({ springTransition, viewPortProps }) => {
     setStatus("sending");
     try {
       // 🔥 FIX: Direct Render URL pass kiya taaki localhost ki error na aaye
-      const response = await axiosClient.post("https://skywayitsolution.onrender.com/api/enquiry", formData);
+      const response = await axiosClient.post("/api/enquiry", formData);
 
       if (response.status === 200 || response.status === 201) {
         alert("Enquiry sent successfully!");
@@ -111,7 +111,7 @@ const FeedbackForm = ({ springTransition, viewPortProps }) => {
     setStatus("sending");
     try {
       // 🔥 FIX: Direct Render URL pass kiya taaki localhost ki error na aaye
-      const response = await axiosClient.post("https://skywayitsolution.onrender.com/api/feedback", formData);
+      const response = await axiosClient.post("/api/feedback", formData);
 
       if (response.status === 200 || response.status === 201) {
         alert("Feedback submitted! Thank you.");
