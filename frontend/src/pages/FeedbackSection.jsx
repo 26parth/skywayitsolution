@@ -15,7 +15,7 @@ const FeedbackSection = () => {
     const fetchFeedbacks = async () => {
       try {
       // Sirf itna path do, baseURL apne aap Render ka utha lega
-const res = await axiosClient.get("/api/feedback/visible");
+const res = await axiosClient.get("/feedback/visible");
         if (res.data?.feedbacks) setTestimonials(res.data.feedbacks);
       } catch (err) { console.error("❌ Error:", err); }
       finally { setLoading(false); }
