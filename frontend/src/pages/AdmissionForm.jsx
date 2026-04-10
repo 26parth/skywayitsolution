@@ -1,3 +1,4 @@
+// C:\Users\hp\OneDrive\Desktop\28 jan skyway\skywayitsolution\frontend\src\pages\AdmissionForm.jsx
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
@@ -9,7 +10,8 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAdmissionForm } from "../hooks/admissionQuery";
 import { useMutation } from "@tanstack/react-query";
-import axios from "axios";
+import { CircularProgress } from "@mui/material";
+import SubmitButton from "../components/SubmitButton";
 
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024;
@@ -18,32 +20,84 @@ const RATIO_MAX = 0.85;
 
 
 const AdmissionForm = () => {
-    const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm();
-    const user = useSelector((state) => state.auth.user); // 👈 YAHI
     const [photoFile, setPhotoFile] = useState(null);
     const [signatureFile, setSignatureFile] = useState(null);
     const [photoPreview, setPhotoPreview] = useState(null);
     const [signaturePreview, setSignaturePreview] = useState(null);
     const mutation = useAdmissionForm();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
 
     // ✅ useLocation hook yaha component ke andar
     const location = useLocation();
+    const user = useSelector((state) => state.auth.user);
     const { courseId, courseTitle, courseDuration, price } = location.state || {};
+    const { register, handleSubmit, formState: { errors }, reset } = useForm({
+        defaultValues: {
+            // Course data — ye synchronous hai, ye theek kaam karega
+            courseDuration: courseDuration ?? "",
+            totalFees: price ?? "",
+            courseProjectName: courseTitle ?? "",
+            joiningDate: "",
 
+            // User data — blank rakho, useEffect handle karega
+            internName: "",
+            address: "",
+            dob: "",
+            contactNo: "",
+            educationDetails: "",
+        },
+    });
+
+    // ✅ INDUSTRY STANDARD: reset() sirf tab jab user pehli baar aaye
     React.useEffect(() => {
-        if (courseDuration) {
-            setValue("courseDuration", courseDuration);
-        }
-        if (price) {
-            setValue("totalFees", price);
-        }
-        if (user?.contactNumber) {
-            setValue("contactNo", user.contactNumber);
-        }
-        if (courseTitle) {
-            setValue("courseProjectName", courseTitle); // 👈 IMPORTANT
-        }
-    }, [courseDuration, price, user, courseTitle, setValue]);
+        if (!user) return;
+
+        reset({
+            courseDuration: courseDuration ?? "",
+            totalFees: price ?? "",
+            courseProjectName: courseTitle ?? "",
+            joiningDate: "",
+
+            internName: user.fullname ?? "",
+            address: user.currentAddress || user.permanentAddress || "",
+            // ✅ dob: Date object bhi ho sakta hai, string bhi
+            dob: user.dob
+                ? new Date(user.dob).toISOString().split("T")[0]
+                : "",
+            contactNo: user.contactNumber ?? "",
+            educationDetails: user.qualification ?? "",
+        });
+    }, [user]);
+    // 🔥 FIXED EFFECT: Har bar data refresh hone par forcefully load karne ke liye
+    // React.useEffect(() => {
+    //     if (courseDuration) setValue("courseDuration", courseDuration);
+    //     if (price) setValue("totalFees", price);
+    //     if (courseTitle) setValue("courseProjectName", courseTitle);
+
+    //     if (user) {
+    //         // Intern Name
+    //         setValue("internName", user.fullname || "");
+
+    //         // Address (Jo ab skip nahi hoga)
+    //         const userAddress = user.currentAddress || user.permanentAddress || "";
+    //         setValue("address", userAddress);
+
+    //         // DOB
+    //         if (user.dob) {
+    //             const formattedDOB = user.dob.includes('T') ? user.dob.split('T')[0] : user.dob;
+    //             setValue("dob", formattedDOB);
+    //         } else {
+    //             setValue("dob", "");
+    //         }
+
+    //         // Contact No.
+    //         setValue("contactNo", user.contactNumber || "");
+
+    //         // Education Details
+    //         setValue("educationDetails", user.qualification || "");
+    //     }
+    // }, [courseDuration, price, user, courseTitle, setValue]);
 
     const handlePhotoUpload = (e) => {
         const file = e.target.files[0];
@@ -107,8 +161,8 @@ const AdmissionForm = () => {
             toast.error("Course data missing. Please apply from course page.");
             return;
         }
-        
 
+        setIsSubmitting(true);
 
         const fd = new FormData();
         Object.keys(data).forEach((k) => {
@@ -119,7 +173,6 @@ const AdmissionForm = () => {
 
         fd.append("photo", photoFile);
         fd.append("signature", signatureFile);
-
         fd.append("courseId", courseId);
         fd.append("courseTitleSnapshot", courseTitle);
         fd.append("userId", user._id);
@@ -134,10 +187,12 @@ const AdmissionForm = () => {
                 setSignatureFile(null);
                 setPhotoPreview(null);
                 setSignaturePreview(null);
+                setIsSubmitting(false);
             },
             onError: (err) => {
                 const msg = err?.response?.data?.message || err?.message || "Submission failed";
                 toast.error(msg);
+                setIsSubmitting(false);
             },
         });
     };
@@ -189,12 +244,14 @@ const AdmissionForm = () => {
                         </div>
 
                         {/* Address */}
+                        {/* Address */}
                         <div className={gridClasses}>
                             <label className={labelClasses}>Address</label>
                             <TextField
                                 className={inputClasses}
                                 fullWidth
                                 size="small"
+                                InputLabelProps={{ shrink: true }} // 🔥 Ye add karna hai
                                 {...register("address", { required: "Address is required" })}
                                 error={!!errors.address}
                                 helperText={errors.address?.message}
@@ -281,7 +338,13 @@ const AdmissionForm = () => {
                         {/* Education */}
                         <div className={gridClasses}>
                             <label className={labelClasses}>Education(Sem) Details</label>
-                            <TextField className={inputClasses} fullWidth size="small" {...register("educationDetails")} />
+                            <TextField
+                                className={inputClasses}
+                                fullWidth
+                                size="small"
+                                InputLabelProps={{ shrink: true }} // 🔥 Ye add karna hai
+                                {...register("educationDetails")}
+                            />
                         </div>
 
                         {/* Total Fees */}
@@ -417,20 +480,43 @@ const AdmissionForm = () => {
                         </div>
                     </div>
 
-                    {/* SUBMIT */}
                     <div className="pt-6 border-t border-gray-200">
-                        <Button
+
+                    {/* ye hamne sirf demo kai liye lagaya hai !! */}
+                        
+                        {/* <Button
                             type="submit"
                             variant="contained"
                             color="success"
                             fullWidth
                             size="large"
-                            component={motion.button}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
+                            disabled={isSubmitting} // 🔥 Freeze button
+                            className="transition-all duration-200"
+                            style={{
+                                height: '56px', // Button ka size locked rahega loader aane par bhi
+                                cursor: isSubmitting ? "not-allowed" : "pointer",
+                                backgroundColor: isSubmitting ? "#81c784" : undefined // Loader ke waqt soft green color
+                            }}
                         >
-                            Submit Admission Form
-                        </Button>
+                            {isSubmitting ? (
+                                <div className="flex items-center justify-center gap-3">
+                                    <CircularProgress size={24} color="inherit" />
+                                    <span className="font-bold tracking-wider">Uploading Files...</span>
+                                </div>
+                            ) : (
+                                <span className="font-bold tracking-wider">Submit Admission Form</span>
+                            )}
+                        </Button> */}
+
+                        {/* SUBMIT */}
+                        <div className="pt-6 border-t border-gray-200">
+                            <SubmitButton
+                                isSubmitting={isSubmitting}
+                                label="Submit Admission Form"
+                                loadingLabel="Uploading Files..."
+                                color="success"
+                            />
+                        </div>
                     </div>
                 </form>
             </div>

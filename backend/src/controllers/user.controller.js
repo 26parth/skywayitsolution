@@ -1,8 +1,15 @@
 // backend/src/controllers/user.controller.js
 import User from "../models/User.model.js";
+import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
+import dotenv from "dotenv";
 
-/** Get current user (protected) */
-// backend/src/controllers/user.controller.js
+dotenv.config();
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 /** Get current user (protected) */
 export const profile = async (req, res, next) => {
@@ -20,9 +27,7 @@ export const profile = async (req, res, next) => {
   }
 };
 
-// backend/src/controllers/user.controller.js
 
-// backend/src/controllers/user.controller.js
 
 export const updateProfile = async (req, res, next) => {
   try {
@@ -50,7 +55,7 @@ export const updateProfile = async (req, res, next) => {
     user.bloodGroup = bloodGroup || user.bloodGroup;
 
 
-    
+
     // Handle array (skillsInterests)
     if (skillsInterests) {
       user.skillsInterests = Array.isArray(skillsInterests)
@@ -58,17 +63,50 @@ export const updateProfile = async (req, res, next) => {
         : skillsInterests.split(",").map(s => s.trim());
     }
 
-    // 3. Profile Completion Logic
-    // Industry Logic: Check if all critical fields are present
-if (user.fullname && user.contactNumber && user.gender && user.currentAddress && user.qualification) {
-      user.isProfileComplete = true;
+    // Condition A: Kya profile ko Profile Page par bhejne layak Mandatory fields fill ho gayi hain?
+    const isMandatoryFilled = user.fullname && user.contactNumber && user.gender;
+
+    if (isMandatoryFilled) {
+      user.isProfileComplete = true; // DB me true ho jayega taaki lock khul sake
     } else {
       user.isProfileComplete = false;
     }
 
-    // 4. Handle File (Profile Pic)
+    // 🔥 NEW ADDITION: Warning Message ka logic (Checking if EVERYTHING is filled)
+    const allFields = [
+      user.fullname, user.contactNumber, user.gender, user.dob,
+      user.qualification, user.linkedin, user.githublink, user.course,
+      user.currentAddress, user.permanentAddress, user.bloodGroup
+    ];
+
+    // Agar koi bhi field khali hai to warning dikhayenge
+    const isEverythingFilled = allFields.every(field => field !== "" && field !== null && field !== undefined);
+
+    // Ye property hum response me bhej rahe hain (Ye DB me save nahi hogi, transient hai)
+    const showIncompleteWarning = !isEverythingFilled;
+
     if (req.file) {
-      user.profilePic = req.file.path;
+      try {
+        // Local path se Cloudinary par upload kar rahe hain
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: "skyway_profiles", // Cloudinary pe ek folder ban jayega
+        });
+
+        // Database me secure URL save kar lo
+        user.profilePic = result.secure_url;
+
+        // Upload hone ke baad local server ke space ko clean up karo
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+      } catch (uploadErr) {
+        console.error("Cloudinary Upload Error:", uploadErr);
+        // Agar folder me file reh gayi ho tab bhi error handle karo
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+        return res.status(500).json({ message: "Failed to upload image to Cloudinary" });
+      }
     }
 
     // 5. Save (Using validateModifiedOnly to avoid password validation errors)
@@ -77,6 +115,7 @@ if (user.fullname && user.contactNumber && user.gender && user.currentAddress &&
     return res.json({
       success: true,
       message: "Profile updated successfully",
+      showIncompleteWarning, // 🔥 Ye variable frontend ko alert dikhane me help karega
       user // Fresh updated user for Redux
     });
   } catch (err) {

@@ -63,25 +63,38 @@ export default function Profile() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-4xl">
         <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-[2.5rem] p-6 md:p-10 shadow-2xl">
 
-          {/* 🔥 PROFILE INCOMPLETE ALERT */}
-          {profile && !profile.isProfileComplete && (
-            <div className="mb-8 p-4 bg-red-500/10 border border-red-500/50 rounded-2xl text-red-400 text-sm flex items-center gap-3 animate-pulse">
-              <span className="text-xl">⚠️</span>
-              <p className="font-semibold">Your profile is incomplete. Please fill all details to access all features.</p>
-            </div>
-          )}
+          {/* 🔥 PROFILE INCOMPLETE ALERT (Checking if any optional field is empty) */}
+          {profile && (
+            !profile.dob ||
+            !profile.qualification ||
+            !profile.linkedin ||
+            !profile.githublink ||
+            !profile.currentAddress ||
+            !profile.permanentAddress
+          ) && (
+              <div className="mb-8 p-4 bg-yellow-500/10 border border-yellow-500/50 rounded-2xl text-yellow-400 text-sm flex items-center gap-3">
+                <span className="text-xl">⚠️</span>
+                <p className="font-semibold">Your profile is incomplete. Please fill all details to complete your 100% profile.</p>
+              </div>
+            )}
 
+          {/* Header Section */}
           {/* Header Section */}
           <div className="flex flex-col md:flex-row items-center gap-6 mb-10 border-b border-white/10 pb-10">
             <div className="w-32 h-32 rounded-3xl overflow-hidden border-4 border-sky-500/30 shadow-[0_0_30px_rgba(14,165,233,0.3)]">
+
+              {/* Dynamic Profile Photo handling */}
+              {/* Dynamic Profile Photo handling */}
               {profile?.profilePic ? (
                 <img src={profile.profilePic} alt="User" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full bg-sky-600 flex items-center justify-center text-4xl font-black text-white">
-                  {profile?.fullname?.charAt(0).toUpperCase()}
+                  {profile?.fullname ? profile.fullname.charAt(0).toUpperCase() : "U"}
                 </div>
               )}
+
             </div>
+
             <div className="text-center md:text-left">
               <h1 className="text-3xl font-bold text-white uppercase tracking-tight">{profile?.fullname}</h1>
               <p className="text-sky-400 font-medium">{profile?.email}</p>

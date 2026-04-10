@@ -1,4 +1,4 @@
-// frontend/src/hooks/authQueries.js
+// C:\Users\hp\OneDrive\Desktop\28 jan skyway\skywayitsolution\frontend\src\hooks\authQueries.js
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosClient from "../lib/axiosClient";
 import { useDispatch } from "react-redux";

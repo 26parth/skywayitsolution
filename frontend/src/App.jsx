@@ -1,6 +1,6 @@
 // frontend/src/App.jsx
 import React, { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { useSelector } from "react-redux";
 
 // Hooks
@@ -42,37 +42,27 @@ import AdminLayout from './components/admin/AdminLayout';
 import Manageadmin from './pages/admin/Manageadmin';
 
 const App = () => {
-  // 1. SARE HOOKS TOP PAR (KISI CONDITION SE PEHLE)
   useAdminPersist();
   useAuthPersist();
 
   const userLoading = useSelector((state) => state.auth.loading);
   const adminLoading = useSelector((state) => state.adminAuth.loading);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-
-  // const [isTimerLoading, setIsTimerLoading] = useState(true);
-
-  // useEffect(() => {
-  //   const timer = setTimeout(() => {
-  //     setIsTimerLoading(false);
-  //   }, 2000);
-  //   return () => clearTimeout(timer);
-  // }, []);
+  const location = useLocation(); // 👈 add this
+  const isAdminRoute = location.pathname.startsWith("/admin"); // 👈 add this
 
   const handleButtonClick = () => setIsModalOpen(true);
   const handleModalClose = () => setIsModalOpen(false);
 
-  // 2. CONDITIONAL RETURN (HOOKS KE BAAD)
-  // Jab tak Redux check kar raha hai YA timer chal raha hai, Loader dikhao
   if (userLoading || adminLoading) {
     return null;
   }
 
+
   return (
     <>
-      <Navbar />
+      {!isAdminRoute && <Navbar />}  {/* 👈 Navbar sirf non-admin routes pe */}
       <Routes>
         {/* Main Website Sections */}
         <Route path="/" element={
@@ -102,7 +92,7 @@ const App = () => {
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<Profile />} />
           <Route path="/edit-profile" element={<EditProfile />} />
-        <Route path="/admissionform" element={<AdmissionForm />} />
+          <Route path="/admissionform" element={<AdmissionForm />} />
 
         </Route>
 

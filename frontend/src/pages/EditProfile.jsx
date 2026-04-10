@@ -1,9 +1,11 @@
+//C:\Users\hp\OneDrive\Desktop\28 jan skyway\skywayitsolution\frontend\src\pages\EditProfile.jsx
 import React, { useState, useEffect } from "react";
 import { useGetProfile, useUpdateProfile } from "../hooks/userQueries";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { setCredentials } from "../redux/authSlice";
+import SubmitButton from "../components/SubmitButton"; // Import karo
 
 const EditProfile = () => {
     const navigate = useNavigate();
@@ -35,18 +37,17 @@ const EditProfile = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        // 🔥 STRICT VALIDATION: Contact Number must be 10 digits
+        // 1. Contact Number must be 10 digits
         const phoneRegex = /^\d{10}$/;
         if (!phoneRegex.test(form.contactNumber)) {
             return alert("Please enter a valid 10-digit contact number!");
         }
 
-        // Logical check: important fields empty na hon
-        const isComplete = form.fullname && form.contactNumber && form.gender && form.currentAddress;
-        if (!isComplete) {
-            return alert("Please fill all mandatory fields (Name, Contact, Gender, Address)!");
+        // 2. Mandatory Fields Check (Sirf 3 fields)
+        const isMandatoryFilled = form.fullname && form.contactNumber && form.gender;
+        if (!isMandatoryFilled) {
+            return alert("Please fill all mandatory fields (Name, Contact, Gender)!");
         }
-
 
         const formData = new FormData();
         Object.keys(form).forEach(key => {
@@ -56,19 +57,30 @@ const EditProfile = () => {
                 formData.append(key, form[key]);
             }
         });
-        formData.append("isProfileComplete", true); // Forcefully true on success
-        if (selectedFile) formData.append("profilePic", selectedFile);
 
+        if (selectedFile) {
+            // Backend controller me tune `req.file` manga hai jiska fieldname 'profilePic' expect ho raha hai
+            formData.append("profilePic", selectedFile);
+        }
+
+
+        // 🔥 FIX: Ab frontend se `isProfileComplete` bhejane ki zaroorat nahi hai.
+        // Backend khud un mandatory 3 fields ke basis pe isse database me true/false handle kar lega!
         update.mutate(formData, {
             onSuccess: (res) => {
-                dispatch(setCredentials({ user: res.user, accessToken }));
+                // 🔥 FIX: Check karo response me kya aa raha hai, mostly res.data me hota hai sab kuch
+                const updatedUser = res.data?.user || res.user;
+
+                if (updatedUser) {
+                    dispatch(setCredentials({ user: updatedUser, accessToken }));
+                }
+
                 alert("Profile Updated Successfully!");
                 navigate("/");
             },
             onError: (err) => alert(err.response?.data?.message || "Update failed"),
         });
     };
-
     if (isLoading) return <div className="min-h-screen bg-[#050D1C] flex items-center justify-center text-sky-400">Loading Form...</div>;
 
     return (
@@ -78,18 +90,44 @@ const EditProfile = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Photo Upload Section */}
+                    {/* Photo Upload Section */}
                     <div className="flex flex-col items-center mb-8">
                         <div className="w-24 h-24 rounded-3xl overflow-hidden border-2 border-dashed border-sky-500/50 p-1 mb-4">
                             {preview || form.profilePic ? (
-                                <img src={preview || form.profilePic} className="w-full h-full object-cover rounded-2xl" />
+                                <img
+                                    src={
+                                        preview ||
+                                        (form.profilePic?.startsWith('http')
+                                            ? form.profilePic
+                                            : `http://localhost:5000${form.profilePic}`) // 👈 Backend URL yahan daalo
+                                    }
+                                    className="w-full h-full object-cover rounded-2xl"
+                                    alt="User Profile"
+                                />
                             ) : (
                                 <div className="h-full w-full bg-white/5 flex items-center justify-center text-[10px] text-gray-500">No Image</div>
                             )}
                         </div>
-                        <input type="file" onChange={(e) => {
-                            setSelectedFile(e.target.files[0]);
-                            setPreview(URL.createObjectURL(e.target.files[0]));
-                        }} className="text-xs text-gray-400 file:bg-sky-500/20 file:text-sky-400 file:border-0 file:rounded-full file:px-4 file:py-2 cursor-pointer" />
+
+                        <input
+                            type="file"
+                            accept="image/jpeg, image/jpg, image/png" // 🔥 Sirf images allow karne ke liye
+                            onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (!file) return;
+
+                                // Frontend validation: Agar image na ho toh filter out kardo
+                                if (!file.type.startsWith("image/")) {
+                                    alert("Please upload a valid image file (JPG, JPEG, PNG)!");
+                                    e.target.value = null; // Input reset karne ke liye
+                                    return;
+                                }
+
+                                setSelectedFile(file);
+                                setPreview(URL.createObjectURL(file));
+                            }}
+                            className="text-xs text-gray-400 file:bg-sky-500/20 file:text-sky-400 file:border-0 file:rounded-full file:px-4 file:py-2 cursor-pointer"
+                        />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -121,9 +159,13 @@ const EditProfile = () => {
                         </div>
                     </div>
 
-                    <button type="submit" className="w-full bg-white text-black font-black py-4 rounded-2xl hover:bg-sky-500 hover:text-white transition-all uppercase tracking-widest mt-6 shadow-xl active:scale-95">
-                        {update.isLoading ? "Saving Data..." : "Save Profile Details"}
-                    </button>
+                    // Sabse clean industry standard approach:
+                    <SubmitButton
+                        isSubmitting={update.isPending}  // ← TanStack Query khud track karta hai!
+                        label="Update Profile"
+                        loadingLabel="Updating..."
+                        color="primary"
+                    />
                 </form>
             </motion.div>
         </div>

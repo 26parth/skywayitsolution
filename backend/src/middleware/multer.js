@@ -1,17 +1,17 @@
+// C:\Users\hp\OneDrive\Desktop\28 jan skyway\skywayitsolution\backend\src\middleware\multer.js
+
 import multer from "multer";
 import fs from "fs";
 import path from "path";
 
-// Ensure upload folder exists on server
 const uploadDir = "uploads/";
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
 
-// Local Storage Engine for Multer
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, uploadDir); // Files Render server ke 'uploads' folder me save hongi
+    cb(null, uploadDir); 
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -22,11 +22,13 @@ const storage = multer.diskStorage({
 const upload = multer({ 
   storage: storage,
   fileFilter: (req, file, cb) => {
-    // PDF only restriction
-    if (file.mimetype === "application/pdf") {
+    // 🔥 FIX: Added image mimetypes
+    const allowedTypes = ["application/pdf", "image/jpeg", "image/jpg", "image/png"];
+    
+    if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("Only PDF files are allowed!"), false);
+      cb(new Error("Only PDF and Images (JPEG, JPG, PNG) are allowed!"), false);
     }
   }
 });

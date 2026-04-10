@@ -93,6 +93,7 @@ export default function Navbar() {
             >
 
               {/* --- LOGIN/PROFILE SECTION --- */}
+              {/* --- LOGIN/PROFILE SECTION --- */}
               <div className="absolute top-5 left-5">
                 {!user ? (
                   <button
@@ -106,24 +107,28 @@ export default function Navbar() {
                     onClick={() => { navigate("/profile"); setOpen(false); }}
                     className="flex items-center space-x-3 bg-white/10 p-1 pr-4 rounded-full border border-white/20 cursor-pointer hover:bg-white/20 transition-all shadow-lg"
                   >
-                    {/* 🔥 DYNAMIC PROFILE PHOTO OR INITIAL LOGIC */}
-
+                    {/* Dynamic Profile Photo Or Initial Logic */}
                     <div className="w-10 h-10 rounded-full overflow-hidden bg-blue-500 flex items-center justify-center text-white border border-white/20">
+
+                      {/* Agar Cloudinary ya Google se image mili to use dikhao */}
                       {user?.profilePic ? (
                         <img
                           src={user.profilePic}
                           alt="Profile"
                           className="w-full h-full object-cover"
-                          key={user.profilePic} // 🔥 Force re-render on change
+                          key={user.profilePic} // Ye save hote hi instant naya photo render karwayega
                         />
                       ) : (
+                        /* Agar koi photo nahi hai to naam ka pehla akshar dikhao */
                         <span className="font-black text-lg uppercase">
-                          {user?.fullname ? user.fullname[0] : "U"}
+                          {user?.fullname ? user.fullname.charAt(0) : "U"}
                         </span>
                       )}
                     </div>
+
+                    {/* Name display logic */}
                     <span className="text-white font-extrabold uppercase tracking-tighter text-xs">
-                      {user.fullname ? user.fullname.split(" ")[0] : "Profile"}
+                      {user?.fullname ? user.fullname.split(" ")[0] : "Profile"}
                     </span>
                   </div>
                 )}
@@ -160,7 +165,7 @@ export default function Navbar() {
                   </motion.div>
                 ))}
 
-                
+
               </motion.div>
             </motion.div>
           </>

@@ -1,4 +1,4 @@
-// frontend/src/redux/authSlice.js
+// C:\Users\hp\OneDrive\Desktop\28 jan skyway\skywayitsolution\frontend\src\redux\authSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {

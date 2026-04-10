@@ -1,19 +1,19 @@
-// backend/src/controllers/admission.controller.js
+// C:\Users\hp\OneDrive\Desktop\28 jan skyway\skywayitsolution\backend\src\controllers\admission.controller.js
 import { Admission } from "../models/Admission.model.js";
 import Course from "../models/Course.model.js";
-  
+import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 import path from "path";
+import dotenv from "dotenv";
+dotenv.config();
 
-const deleteFile = (filename) => {
-  try {
-    if (!filename) return;
-    const filePath = path.join(process.cwd(), "uploads", "admission", filename);
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-  } catch (err) {
-    console.error("File delete error:", err);
-  }
-};
+// 🔥 Cloudinary config (Ye credentials load karega)
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 
 export const createAdmission = async (req, res) => {
   try {
@@ -27,7 +27,7 @@ export const createAdmission = async (req, res) => {
       courseProjectName,
       educationDetails,
       totalFees,
-      courseId        // 👈 frontend se aayega
+      courseId
     } = req.body;
 
     // ✅ USER FROM TOKEN
@@ -42,12 +42,12 @@ export const createAdmission = async (req, res) => {
     const photoFile = req.files?.photo?.[0];
     const signatureFile = req.files?.signature?.[0];
 
+
     // Validate files
     if (!photoFile || !signatureFile) {
-      deleteFile(photoFile?.filename);
-      deleteFile(signatureFile?.filename);
       return res.status(400).json({ success: false, message: "Photo & Signature are required." });
     }
+
 
     // Validate required fields
     if (!internName || !address || !dob || !contactNo || !joiningDate || !courseDuration) {
@@ -65,31 +65,60 @@ export const createAdmission = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid date format." });
     }
 
+    let photoUrl = "";
+    let signatureUrl = "";
+
+    try {
+      // 🔥 1. Upload Photo to Cloudinary
+      const photoResult = await cloudinary.uploader.upload(photoFile.path, {
+        folder: "admission_photos",
+      });
+      photoUrl = photoResult.secure_url;
+
+      // 🔥 2. Upload Signature to Cloudinary
+      const sigResult = await cloudinary.uploader.upload(signatureFile.path, {
+        folder: "admission_signatures",
+      });
+      signatureUrl = sigResult.secure_url;
+
+      // Upload hone ke baad local storage se files delete kar do
+      if (fs.existsSync(photoFile.path)) fs.unlinkSync(photoFile.path);
+      if (fs.existsSync(signatureFile.path)) fs.unlinkSync(signatureFile.path);
+
+    } catch (uploadErr) {
+      console.error("Cloudinary upload error in admission:", uploadErr);
+
+      // Cleanup local files if upload failed
+      if (fs.existsSync(photoFile.path)) fs.unlinkSync(photoFile.path);
+      if (fs.existsSync(signatureFile.path)) fs.unlinkSync(signatureFile.path);
+
+      return res.status(500).json({ success: false, message: "Failed to upload files to Cloudinary." });
+    }
+
     // Create admission
     const admission = await Admission.create({
       userId,                        // ✅ CONNECTED
       courseId,                      // ✅ CONNECTED
       courseTitleSnapshot: course.title, // ✅ SNAPSHOT
-
       internName,
       address,
       dob,
       contactNo,
       joiningDate,
-
       courseDuration: course.duration, // ✅ AUTO FROM COURSE
       courseProjectName,
       educationDetails,
       totalFees: Number(course.price), // ✅ AUTO FEES
-
-      photo: photoFile.filename,
-      signature: signatureFile.filename,
+      photo: photoUrl,
+      signature: signatureUrl,
     });
 
     res.status(201).json({ success: true, admission });
 
   } catch (err) {
     console.error(err);
+
+
 
     // Duplicate contact number
     if (err.code === 11000) {
@@ -107,9 +136,14 @@ export const createAdmission = async (req, res) => {
 
     res.status(500).json({ success: false, message: err.message || "Server error." });
   }
+
+  const deleteFile = (filename) => {
+    const filePath = path.join(process.cwd(), "public/uploads/admission", filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  };
 };
-
-
 
 // ==== GET single Admission by ID ====
 export const getAdmission = async (req, res) => {

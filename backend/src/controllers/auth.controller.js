@@ -1,3 +1,4 @@
+//C:\Users\hp\OneDrive\Desktop\28 jan skyway\skywayitsolution\backend\src\controllers\auth.controller.js
 import User from "../models/User.model.js";
 import sessionModel from "../models/session.model.js";
 import { OAuth2Client } from "google-auth-library";
@@ -125,6 +126,7 @@ export const loginUser = async (req, res, next) => {
 
     setUserRefreshCookie(res, refreshToken);
 
+    // loginUser ke response mein (line ~90)
     return res.json({
       success: true,
       accessToken,
@@ -135,6 +137,11 @@ export const loginUser = async (req, res, next) => {
         contactNumber: user.contactNumber,
         role: user.role,
         isProfileComplete: user.isProfileComplete,
+        // ✅ YE TEEN ADD KARO
+        dob: user.dob,
+        currentAddress: user.currentAddress,
+        permanentAddress: user.permanentAddress,
+        qualification: user.qualification,
       },
     });
   } catch (err) { next(err); }
@@ -247,9 +254,13 @@ export const refreshUserToken = async (req, res, next) => {
         _id: user._id,
         fullname: user.fullname,
         email: user.email,
+        contactNumber: user.contactNumber,
         role: user.role,
-        contactNumber: user.contactNumber, // Ye missing tha
         isProfileComplete: user.isProfileComplete,
+        dob: user.dob,
+        currentAddress: user.currentAddress,
+        permanentAddress: user.permanentAddress,
+        qualification: user.qualification,
       },
     });
   } catch (err) {
@@ -257,7 +268,7 @@ export const refreshUserToken = async (req, res, next) => {
     next(err);
   }
 };
-    
+
 
 /** Logout Current Device */
 export const logoutUser = async (req, res, next) => {
@@ -322,7 +333,7 @@ export const forgotPassword = async (req, res, next) => {
 
     // 2. Token ko hash karke DB me save karo (Taki koi database churaye tab bhi token na mile)
     const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
-    
+
     user.resetPasswordToken = hashedToken;
     user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 mins expiry
     await user.save();
@@ -358,7 +369,7 @@ export const resetPassword = async (req, res, next) => {
     }
 
     // Naya password set karo
-    user.password = password; 
+    user.password = password;
     user.resetPasswordToken = undefined; // Use clear kar do
     user.resetPasswordExpires = undefined; // Use clear kar do
     await user.save();
