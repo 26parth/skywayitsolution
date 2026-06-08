@@ -11,6 +11,8 @@ import admissionRoutes from "./src/routes/admission.routes.js";
 import certificateRoutes from "./src/routes/certificate.routes.js";
 import enquiryRoutes from "./src/routes/enquiry.routes.js";
 import feedbackRoutes from "./src/routes/feedback.routes.js";
+import healthRouter from "./src/routes/health.route.js";
+
 
 dotenv.config();
 const app = express();
@@ -68,6 +70,12 @@ app.use("/api/course", courseRoutes);
 app.use("/api/admission", admissionRoutes);
 app.use("/api/admin/admission", admissionRoutes);
 app.use("/api/admin/certificate", certificateRoutes);
+
+// ----------------------
+// 🚀 HEALTH ROUTES 
+// ----------------------
+app.use("/api/health", healthRouter);
+
 
 app.use("/api/enquiry", enquiryRoutes);
 app.use("/api/feedback", feedbackRoutes);

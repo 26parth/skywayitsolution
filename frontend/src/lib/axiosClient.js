@@ -1,13 +1,12 @@
 import axios from "axios";
 import store from "../redux/store";
-import { updateAccessToken, logout } from "../redux/authSlice";
+import { updateAccessToken, logout, setCredentials } from "../redux/authSlice";
 
 const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
 
-// Request Interceptor
 axiosClient.interceptors.request.use(
   (config) => {
     const accessToken = store.getState().auth.accessToken;
@@ -17,8 +16,7 @@ axiosClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor
-let isRefreshing = false; // 🔥 Ek sath multiple calls rokne ke liye
+let isRefreshing = false;
 let failedQueue = [];
 
 const processQueue = (error, token = null) => {
@@ -34,10 +32,19 @@ axiosClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // 🔥 Check specifically for TOKEN_EXPIRED code from backend
     const isExpired = error.response?.data?.code === "TOKEN_EXPIRED";
 
-    if (error.response?.status === 401 && isExpired && !originalRequest._retry) {
+    // ✅ Auth routes ko refresh loop se bahar rakho
+    const isAuthRoute = originalRequest.url?.includes("/auth/login") ||
+      originalRequest.url?.includes("/auth/register") ||
+      originalRequest.url?.includes("/auth/refresh-token");
+
+    if (
+      error.response?.status === 401 &&
+      isExpired &&
+      !originalRequest._retry &&
+      !isAuthRoute  // ✅ Auth routes skip
+    ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -58,19 +65,21 @@ axiosClient.interceptors.response.use(
           {},
           { withCredentials: true }
         );
-        
+
         const newToken = refreshRes.data.accessToken;
+        const updatedUser = refreshRes.data.user;
         store.dispatch(updateAccessToken(newToken));
-        
-        processQueue(null, newToken);
-        isRefreshing = false;
+        if (updatedUser) {
+          store.dispatch(setCredentials({ user: updatedUser, accessToken: newToken }));
+        }
+
+
 
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return axiosClient(originalRequest);
       } catch (err) {
         processQueue(err, null);
         isRefreshing = false;
-        
         store.dispatch(logout());
         if (window.location.pathname !== "/login") {
           window.location.href = "/login";
@@ -78,6 +87,8 @@ axiosClient.interceptors.response.use(
         return Promise.reject(err);
       }
     }
+
+    // ✅ Poora error return karo — structure sahi rahega
     return Promise.reject(error);
   }
 );

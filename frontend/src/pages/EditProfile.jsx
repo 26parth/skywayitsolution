@@ -159,7 +159,6 @@ const EditProfile = () => {
                         </div>
                     </div>
 
-                    // Sabse clean industry standard approach:
                     <SubmitButton
                         isSubmitting={update.isPending}  // ← TanStack Query khud track karta hai!
                         label="Update Profile"

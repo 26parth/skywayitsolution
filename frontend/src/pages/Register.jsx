@@ -1,153 +1,145 @@
-// frontend/src/pages/Register.jsx
-import React, { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "react-hot-toast";
 import { useRegister } from "../hooks/authQueries";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { logout } from "../redux/authSlice";
-import { motion } from "framer-motion"; // Animation ke liye
+import { setCredentials } from "../redux/authSlice";
+import { motion } from "framer-motion";
+
+const schema = z.object({
+  fullname: z.string().min(2, "Enter 2+ characters"),
+  email: z.string().email("Enter valid email"),
+  contactNumber: z.string().regex(/^[6-9]\d{9}$/, "Enter valid 10 digit number"),
+  password: z.string()
+    .min(6, "6+ characters")
+    .regex(/[0-9]/, "Enter one number")
+    .regex(/[!@#$%^&*]/, "One special character"),
+});
 
 export default function Register() {
-  const [form, setForm] = useState({ fullname: "", email: "", contactNumber: "", password: "" });
   const navigate = useNavigate();
   const mutation = useRegister();
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    dispatch(logout());  // clears leftover user
-  }, [dispatch]);
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+    resolver: zodResolver(schema),
+  });
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
-
-    // 1. Gmail Validation (Basic check ki domain @gmail.com hai ya nahi)
-    if (!form.email.endsWith("@gmail.com")) {
-      return alert("Email is not valid. Please use a valid Google/Gmail account.");
-    }
-
-    // 2. Number Validation
-    if (form.contactNumber.length !== 10) {
-      return alert("Contact number must be 10 digits.");
-    }
-
-    // 3. Password Validation
-    const passRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,}$/;
-    if (!passRegex.test(form.password)) {
-      return alert("Password must be 6+ chars with a number and special character.");
-    }
-
+  const onSubmit = async (data) => {
     try {
-      await mutation.mutateAsync(form);
-      alert("Registration successful!");
-      navigate("/login");
+      const res = await mutation.mutateAsync(data);
+
+      // ✅ Register hote hi auto-login — Redux mein credentials set karo
+      dispatch(setCredentials({
+        user: res.user,
+        accessToken: res.accessToken,
+      }));
+
+      // ✅ Seedha edit-profile par bhejo — login ki zaroorat nahi
+      navigate("/edit-profile?reason=complete_profile");
+
     } catch (err) {
-      alert(err.response?.data?.message || "Registration failed");
+      toast.error(err.response?.data?.message || "Registration failed");
     }
   };
 
   return (
-    // Background Wrapper (Dark Premium Theme)
-    <div className="min-h-screen w-full flex items-center justify-center relative px-4 py-10 overflow-hidden"
-      style={{ background: "#050D1C" }}>
-
-      {/* Background Blur Elements */}
-      <div className="absolute inset-0 backdrop-blur-[2px]"></div>
-
-      {/* Register Card Container */}
+    <div
+      className="min-h-screen w-full flex items-center justify-center"
+      style={{ background: "#050D1C" }}
+    >
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-lg"
+        className="w-full max-w-lg"
       >
-        <div className="group relative rounded-3xl p-8 md:p-10 flex flex-col overflow-hidden bg-white/10 border border-white/10 backdrop-blur-md shadow-[0_0_50px_rgba(14,165,233,0.1)] transition-all duration-500 hover:border-sky-500/30">
+        <div className="rounded-3xl p-8 bg-white/10 border border-white/10 backdrop-blur-md">
 
-          {/* Shine Effect */}
-          <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-[25deg] transition-all duration-1000 ease-in-out group-hover:left-[100%]" />
+          <h2 className="text-3xl font-bold text-white text-center mb-6">
+            Create <span className="text-sky-400">Account</span>
+          </h2>
 
-          {/* Heading */}
-          <div className="mb-6 text-center">
-            <h2 className="text-3xl font-bold text-white tracking-tight">
-              Create <span className="text-sky-400">Account</span>
-            </h2>
-            <p className="text-gray-400 mt-2 text-sm">Join us and start your learning journey</p>
-          </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
-          <form onSubmit={onSubmit} className="space-y-4 relative z-10">
-
-            {/* Full Name */}
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-sky-200 uppercase tracking-widest ml-1">Full Name</label>
+            <div>
+              <label className="text-xs font-bold text-sky-200 uppercase tracking-widest">
+                Full Name
+              </label>
               <input
-                required
+                {...register("fullname")}
                 placeholder="John Doe"
-                value={form.fullname}
-                onChange={(e) => setForm({ ...form, fullname: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-sky-500/50 transition-all"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white"
               />
+              {errors.fullname && (
+                <p className="text-red-400 text-xs mt-1">{errors.fullname.message}</p>
+              )}
             </div>
 
-            {/* Email */}
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-sky-200 uppercase tracking-widest ml-1">Email Address</label>
+            <div>
+              <label className="text-xs font-bold text-sky-200 uppercase tracking-widest">
+                Email Address
+              </label>
               <input
-                required
+                {...register("email")}
                 type="email"
                 placeholder="email@example.com"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-sky-500/50 transition-all"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white"
               />
+              {errors.email && (
+                <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>
+              )}
             </div>
 
-            {/* Contact Number */}
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-sky-200 uppercase tracking-widest ml-1">Contact Number</label>
+            <div>
+              <label className="text-xs font-bold text-sky-200 uppercase tracking-widest">
+                Contact Number
+              </label>
               <input
-                required
-                placeholder="+91 00000 00000"
-                value={form.contactNumber}
-                onChange={(e) => setForm({ ...form, contactNumber: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-sky-500/50 transition-all"
+                {...register("contactNumber")}
+                placeholder="9876543210"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white"
               />
+              {errors.contactNumber && (
+                <p className="text-red-400 text-xs mt-1">{errors.contactNumber.message}</p>
+              )}
             </div>
 
-            {/* Password */}
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-sky-200 uppercase tracking-widest ml-1">Password</label>
+            <div>
+              <label className="text-xs font-bold text-sky-200 uppercase tracking-widest">
+                Password
+              </label>
               <input
-                required
+                {...register("password")}
                 type="password"
                 placeholder="••••••••"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-gray-600 focus:outline-none focus:border-sky-500/50 transition-all"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white"
               />
+              {errors.password && (
+                <p className="text-red-400 text-xs mt-1">{errors.password.message}</p>
+              )}
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
-              disabled={mutation.isLoading}
-              className="w-full mt-4 bg-white text-black font-bold py-3.5 rounded-xl hover:bg-sky-50 transition-all shadow-lg active:scale-[0.98] group/btn overflow-hidden relative"
+              disabled={isSubmitting || mutation.isPending}
+              className="w-full bg-white text-black font-bold py-3.5 rounded-xl hover:bg-sky-50 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              <span className="relative z-10">
-                {mutation.isLoading ? "Creating Account..." : "Register Now"}
-              </span>
+              {isSubmitting || mutation.isPending ? "Creating Account..." : "Register Now"}
             </button>
           </form>
 
-          {/* Bottom Link */}
-          <div className="mt-6 text-center relative z-10">
-            <p className="text-gray-400 text-sm">
-              Already have an account?{" "}
-              <button
-                onClick={() => navigate("/edit-profile")}
-                className="text-sky-400 hover:text-sky-300 font-semibold transition-colors"
-              >
-                Sign in
-              </button>
-            </p>
-          </div>
+          <p className="text-gray-400 text-sm text-center mt-6">
+            Already have an account?{" "}
+            <button
+              onClick={() => navigate("/login")}
+              className="text-sky-400 font-semibold"
+            >
+              Sign in
+            </button>
+          </p>
 
         </div>
       </motion.div>

@@ -1,19 +1,15 @@
-// frontend/src/App.jsx
-import React, { useState, useEffect } from 'react';
+import { Toaster } from "react-hot-toast";  // ✅ changed
+import React, { useState } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { useSelector } from "react-redux";
 
-// Hooks
 import useAdminPersist from "./hooks/useAdminPersist";
 import useAuthPersist from "./hooks/useAuthPersist";
 
-// Components
 import Navbar from './components/Navbar';
-import Loader from './components/Loader';
 import FloatingButton from './components/FloatingButton';
 import GameModal from './components/GameModal';
 
-// Pages (Sahi imports rakho)
 import Home from './pages/Home';
 import Card from './pages/Course';
 import Members from './pages/teamMembers';
@@ -42,80 +38,69 @@ import AdminLayout from './components/admin/AdminLayout';
 import Manageadmin from './pages/admin/Manageadmin';
 
 const App = () => {
-  useAdminPersist();
-  useAuthPersist();
+    useAdminPersist();
+    useAuthPersist();
 
-  const userLoading = useSelector((state) => state.auth.loading);
-  const adminLoading = useSelector((state) => state.adminAuth.loading);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+    const userLoading = useSelector((state) => state.auth.loading);
+    const adminLoading = useSelector((state) => state.adminAuth.loading);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const location = useLocation(); // 👈 add this
-  const isAdminRoute = location.pathname.startsWith("/admin"); // 👈 add this
+    const location = useLocation();
+    const isAdminRoute = location.pathname.startsWith("/admin");
 
-  const handleButtonClick = () => setIsModalOpen(true);
-  const handleModalClose = () => setIsModalOpen(false);
+    if (userLoading || adminLoading) return null;
 
-  if (userLoading || adminLoading) {
-    return null;
-  }
+    return (
+        <>
+            {/* ✅ react-hot-toast ka Toaster */}
+            <Toaster position="top-center" />
 
+            {!isAdminRoute && <Navbar />}
 
-  return (
-    <>
-      {!isAdminRoute && <Navbar />}  {/* 👈 Navbar sirf non-admin routes pe */}
-      <Routes>
-        {/* Main Website Sections */}
-        <Route path="/" element={
-          <>
-            <section id="home"><Home /></section>
-            <section id="features"><Features /></section>
-            <section id="courses"><Card /></section>
-            <section id="teamMembers"><Members /></section>
-            <section id="project"><Project /></section>
-            <section id="ourServices"><OurServicesSection /></section>
-            <section id="feedback"><FeedbackSection /></section>
-            <section id="footer"><FooterSection /></section>
+            <Routes>
+                <Route path="/" element={
+                    <>
+                        <section id="home"><Home /></section>
+                        <section id="features"><Features /></section>
+                        <section id="courses"><Card /></section>
+                        <section id="teamMembers"><Members /></section>
+                        <section id="project"><Project /></section>
+                        <section id="ourServices"><OurServicesSection /></section>
+                        <section id="feedback"><FeedbackSection /></section>
+                        <section id="footer"><FooterSection /></section>
+                        <FloatingButton onClick={() => setIsModalOpen(true)} />
+                        <GameModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+                    </>
+                } />
 
-            <FloatingButton onClick={handleButtonClick} />
-            <GameModal isOpen={isModalOpen} onClose={handleModalClose} />
-          </>
-        }
-        />
+                <Route path="/register" element={<Register />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-        {/* Auth & Admission */}
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
+                <Route element={<ProtectedRoute />}>
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/edit-profile" element={<EditProfile />} />
+                    <Route path="/admissionform" element={<AdmissionForm />} />
+                </Route>
 
-        {/* User Protected */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/edit-profile" element={<EditProfile />} />
-          <Route path="/admissionform" element={<AdmissionForm />} />
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/admin/register" element={<AdminRegister />} />
 
-        </Route>
+                <Route element={<AdminLayout />}>
+                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                    <Route path="/admin/addcourse" element={<AddCourse />} />
+                    <Route path="/admin/showadmission" element={<ShowAdmission />} />
+                    <Route path="/admin/users" element={<ShowUser />} />
+                    <Route path="/admin/enquiries" element={<Enquiries />} />
+                    <Route path="/admin/feedbacks" element={<Feedbacks />} />
+                    <Route path="/admin/manage-admin" element={<Manageadmin />} />
+                </Route>
 
-        {/* Admin Public */}
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin/register" element={<AdminRegister />} />
-
-        {/* Admin Protected */}
-        <Route element={<AdminLayout />}>
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/addcourse" element={<AddCourse />} />
-          <Route path="/admin/showadmission" element={<ShowAdmission />} />
-          <Route path="/admin/users" element={<ShowUser />} />
-          <Route path="/admin/enquiries" element={<Enquiries />} />
-          <Route path="/admin/feedbacks" element={<Feedbacks />} />
-          <Route path="/admin/manage-admin" element={<Manageadmin />} />
-        </Route>
-
-        {/* 404 */}
-        <Route path="*" element={<h1 className="text-center mt-27">404: Page Not Found!</h1>} />
-      </Routes>
-    </>
-  );
+                <Route path="*" element={<h1 className="text-center mt-27">404: Page Not Found!</h1>} />
+            </Routes>
+        </>
+    );
 };
 
 export default App;
